@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>7e98c17d-521b-47f8-bd08-6f71e5a5046d</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ProductsService.Application\ProductsService.Application.csproj" />
+    <ProjectReference Include="..\ProductsService.Domain\ProductsService.Domain.csproj" />
+    <ProjectReference Include="..\ProductsService.Infrastructure\ProductsService.Infrastructure.csproj" />
+    <ProjectReference Include="..\ProductsService.Persistence\ProductsService.Persistence.csproj" />
+  </ItemGroup>
+
+</Project>
