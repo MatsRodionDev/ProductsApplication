@@ -9,7 +9,6 @@ namespace OrderService.Application.Common.Profiles
         public OrderProfile()
         {
             CreateMap<Order, OrderResponseDto>();
-            CreateMap<Order, TakeProductDto>();
         }
     }
 }

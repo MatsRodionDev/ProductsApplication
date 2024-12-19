@@ -2,6 +2,8 @@
 using OrderService.Application.Common.Intefaces;
 using OrderService.Application.Common.Models;
 using OrderService.Domain.Exceptions;
+using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OrderService.Infrastructure.Grpc
 {
@@ -26,34 +28,76 @@ namespace OrderService.Infrastructure.Grpc
             return products.FirstOrDefault(p => p.Id == id);
         }
 
-        public void UpdateQuantity(TakeProductDto dto)
+        public Product TakeProduct(TakeProductDto dto)
         {
             var product = products.FirstOrDefault(p => p.Id == dto.ProductId);
 
             if (product is null)
             {
-                throw new BadRequestException("");
+                throw new NotFoundException($"Product with id {dto.ProductId} doesnt available");
             }
 
             if (product.Quantity < dto.Quantity)
             {
-                throw new BadRequestException("");
+                throw new BadRequestException($"Product with id {dto.ProductId} doesnt available in this quantity");
             }
 
-            product.Quantity -= dto.Quantity;
+            product!.Quantity -= dto.Quantity;
+
+            return new Product
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Quantity = dto.Quantity,
+                Price = product.Price,
+            };
         }
 
-        public void ReturnProduct(ReturnProductDto dto)
+        public List<Product> TakeProducts(List<TakeProductDto> dtos)
         {
-            var product = products.FirstOrDefault(p => p.Id == dto.ProductId);
+            var errors = new StringBuilder();
 
-            if (product is null)
+            foreach (var dto in dtos)
             {
-                throw new BadRequestException("");
+                var product = products.FirstOrDefault(p => p.Id == dto.ProductId);
+
+                if(product is null)
+                {
+                    errors.Append($"Product with id {dto.ProductId} doesnt available");
+                    continue;
+                }
+
+                if(product.Quantity < dto.Quantity)
+                {
+                    errors.Append($"Product with id {dto.ProductId} doesnt available in this quantity");
+                }
             }
 
+            if( errors.Length > 0)
+            {
+                throw new BadRequestException(errors.ToString());
+            }
 
-            product.Quantity += dto.Quantity;
+            List<Product> productsResponse = [];
+
+            foreach(var dto in dtos)
+            {
+                var product = products.FirstOrDefault(p => p.Id == dto.ProductId);
+
+                product!.Quantity -= dto.Quantity;
+
+                productsResponse.Add(new Product
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Description = product.Description,
+                    Quantity = dto.Quantity,
+                    Price = product.Price,
+                });
+            }
+
+            return productsResponse;
         }
     }
 }

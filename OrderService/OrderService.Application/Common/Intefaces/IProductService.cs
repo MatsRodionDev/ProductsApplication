@@ -5,8 +5,8 @@ namespace OrderService.Application.Common.Intefaces
 {
     public interface IProductService
     {
-        void UpdateQuantity(TakeProductDto dto);
-        void ReturnProduct(ReturnProductDto dto);
+        List<Product> TakeProducts(List<TakeProductDto> dtos);
+        Product TakeProduct(TakeProductDto takeProduct);
         Product? GetByIdAsync(Guid id);
     }
 }
