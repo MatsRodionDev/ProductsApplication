@@ -1,10 +1,12 @@
-﻿using OrderService.Application.Common.Models;
+﻿using OrderService.Application.Common.Dtos;
+using OrderService.Application.Common.Models;
 
 namespace OrderService.Application.Common.Intefaces
 {
     public interface IProductService
     {
-        void UpdateQuantity(Guid id, int quantity);
+        void UpdateQuantity(TakeProductDto dto);
+        void ReturnProduct(ReturnProductDto dto);
         Product? GetByIdAsync(Guid id);
     }
 }

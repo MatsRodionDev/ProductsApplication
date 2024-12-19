@@ -1,4 +1,5 @@
-﻿using OrderService.Application.Common.Intefaces;
+﻿using OrderService.Application.Common.Dtos;
+using OrderService.Application.Common.Intefaces;
 using OrderService.Application.Common.Models;
 using OrderService.Domain.Exceptions;
 
@@ -25,21 +26,34 @@ namespace OrderService.Infrastructure.Grpc
             return products.FirstOrDefault(p => p.Id == id);
         }
 
-        public void UpdateQuantity(Guid id, int quantity)
+        public void UpdateQuantity(TakeProductDto dto)
         {
-            var product = products.FirstOrDefault(p => p.Id == id);
+            var product = products.FirstOrDefault(p => p.Id == dto.ProductId);
 
             if (product is null)
             {
                 throw new BadRequestException("");
             }
 
-            if (product.Quantity < quantity)
+            if (product.Quantity < dto.Quantity)
             {
                 throw new BadRequestException("");
             }
 
-            product.Quantity -= quantity;
+            product.Quantity -= dto.Quantity;
+        }
+
+        public void ReturnProduct(ReturnProductDto dto)
+        {
+            var product = products.FirstOrDefault(p => p.Id == dto.ProductId);
+
+            if (product is null)
+            {
+                throw new BadRequestException("");
+            }
+
+
+            product.Quantity += dto.Quantity;
         }
     }
 }

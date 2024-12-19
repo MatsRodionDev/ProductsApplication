@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using MediatR;
+using OrderService.Application.Common.Dtos;
 using OrderService.Application.Common.Intefaces;
 using OrderService.Domain.Enums;
 using OrderService.Domain.Exceptions;
 using OrderService.Domain.Interfaces;
 using OrderService.Domain.Models;
+using System.Text;
 
 namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
 {
@@ -12,7 +14,8 @@ namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
         IBasketRepository basketRepository,
         IProductService productService,
         IOrderRepository orderRepository,
-        IUnitOfWork unitOfWork) : IRequestHandler<CreateOrdersByBasketRequest>
+        IUnitOfWork unitOfWork,
+        IMapper mapper) : IRequestHandler<CreateOrdersByBasketRequest>
     {
         public async Task Handle(CreateOrdersByBasketRequest request, CancellationToken cancellationToken)
         {
@@ -24,13 +27,16 @@ namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
                 throw new BadRequestException("There are no items in the basket");
             }
 
+            List<TakeProductDto> productsToTake = [];
+
             foreach (var item in basket.BasketItems)
             {
-                var product = productService.GetByIdAsync(item.ProductId);
+                var product = productService.GetByIdAsync(item.ProductId)
+                    ?? throw new NotFoundException($"There is no product {item.ProductId}");
 
-                if (product == null || product.Quantity < item.Quantity)
+                if (product.Quantity < item.Quantity)
                 {
-                    throw new BadRequestException($"Product {item.ProductId} is not available or insufficient quantity.");
+                    throw new BadRequestException($"Insufficient quantity of product {product.Id}");
                 }
 
                 if(product.UserId == request.UserId)
@@ -60,11 +66,39 @@ namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
                 };
                     
                 await orderRepository.CreateAsync(order, cancellationToken);
+
+                productsToTake.Add(mapper.Map<TakeProductDto>(order));
             }
 
-            foreach (var item in basket.BasketItems)
+            List<ReturnProductDto> productsToReturn = [];
+
+            var errors = new StringBuilder();
+
+            foreach (var dto in productsToTake)
             {
-                productService.UpdateQuantity(item.ProductId, item.Quantity);
+                try
+                {
+                    productService.UpdateQuantity(dto);
+                } 
+                catch(BadRequestException ex)
+                {
+                    errors.Append(ex.Message);
+                    productsToReturn.Add(mapper.Map<ReturnProductDto>(dto));
+                }
+                catch(NotFoundException ex)
+                {
+                    errors.Append(ex.Message);
+                }
+            }
+
+            if (productsToReturn.Any() || errors.Length > 0)
+            {
+                foreach(var dto in productsToReturn)
+                {
+                    productService.ReturnProduct(dto);
+                }
+
+                throw new BadRequestException(errors.ToString());
             }
 
             basket.BasketItems.Clear();
