@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using UserService.DAL.DataBase;
 using UserService.DAL.Interfaces;
 using UserService.DAL.Repositories;
+using UserService.DAL.UoW;
 
 namespace UserService.DAL.DI
 {
@@ -15,6 +17,9 @@ namespace UserService.DAL.DI
 
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            DatabaseMigrations.ApplyMigrations(services.BuildServiceProvider());
         }
     }
 }

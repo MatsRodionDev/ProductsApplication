@@ -58,7 +58,7 @@ namespace UserService.BLL.Services
             var token = new JwtSecurityToken(
                 claims: claims,
                 signingCredentials: signingCredentials,
-                expires: DateTime.UtcNow.AddMinutes(_jwtOptions.RefreshTokenExpiresDays));
+                expires: DateTime.UtcNow.AddDays(_jwtOptions.RefreshTokenExpiresDays));
 
             var tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
 

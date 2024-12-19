@@ -8,7 +8,7 @@ namespace UserService.DAL.Interfaces
         Task<List<T>> GetAllAsync(CancellationToken cancellationToken = default);
         Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task CreateAsync(T entity, CancellationToken cancellationToken = default);
-        Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
-        Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
+        void Update(T entity);
+        void Delete(T entity);
     }
 }

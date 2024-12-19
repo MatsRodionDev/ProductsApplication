@@ -17,6 +17,7 @@ namespace UserService.BLL.Services
         ICacheService cacheService,
         IEmailService emailService,
         IUserRepository userRepository,
+        IUnitOfWork unitOfWork,
         IJwtService jwtService,
         IRoleRepository roleRepository,
         IPasswordHasher passwordHasher,
@@ -37,26 +38,16 @@ namespace UserService.BLL.Services
                 throw new BadRequestException("An account with this ID has already been activated.");
             }
 
-            var code = await cacheService.GetAsync<int>(
-                CacheKeysProvider.GetActivateKey(userId),
-                cancellationToken); 
-
-            if(code is 0)
-            {
-                throw new BadRequestException("Activation code has expired or does not exist.");
-            }
-
-            if(code != activatePass)
-            {
-                throw new BadRequestException("Incorrect code");
-            }
+            await ValidateActivatePassAsync(userId, activatePass, cancellationToken);
 
             userEntity.IsActivated = true;
-            await userRepository.UpdateAsync(userEntity, cancellationToken);
+            userRepository.Update(userEntity);
 
             await cacheService.RemoveAsync(
                 CacheKeysProvider.GetActivateKey(userId),
                 cancellationToken);
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         public async Task<TokenResponse> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
@@ -82,9 +73,9 @@ namespace UserService.BLL.Services
                 throw new BadRequestException("This account has not been activated");
             }
 
-            var result = passwordHasher.Verify(password, userEntity.PasswordHash);
+            var isPasswordValid = passwordHasher.Verify(password, userEntity.PasswordHash);
 
-            if (!result)
+            if (!isPasswordValid)
             {
                 throw new BadRequestException("Incorrect email or password");
             }
@@ -114,38 +105,9 @@ namespace UserService.BLL.Services
 
         public async Task<TokenResponse> RefreshAsync(string? refreshToken, CancellationToken cancellationToken = default)
         {
-            if(refreshToken is null)
-            {
-                throw new UnauthorizedException();
-            }
+            var userId = GetUserIdFromToken(refreshToken);
 
-            var claims = jwtService.GetClaimsFromToken(refreshToken);
-
-            if (claims is null)
-            {
-                throw new UnauthorizedException();
-            }
-
-            if (!claims.TryGetValue(CustomClaims.USER_ID_CLAIM_KEY, out var id) && id is not Guid)
-            {
-                throw new UnauthorizedException();
-            }
-
-            var userId = Guid.Parse(id.ToString()!);
-
-            var token = await cacheService.GetAsync<string>(
-                CacheKeysProvider.GetRefreshKey(userId),
-                cancellationToken);
-               
-            if(token is null)
-            {
-                throw new UnauthorizedException();
-            }
-
-            if(token != refreshToken)
-            {
-                throw new UnauthorizedException();
-            }
+            await ValidateRefreshTokenAsync(userId, refreshToken!, cancellationToken);
 
             var userEntity = await userRepository.GetByIdAsync(userId, cancellationToken);
 
@@ -159,15 +121,8 @@ namespace UserService.BLL.Services
             var role = user.Role!.Name;
 
             var newAccessToken = jwtService.GenerateAccesToken(user, role);
-            var newRefreshToken = jwtService.GenerateRefreshToken(user.Id);
 
-            await cacheService.SetAsync(
-                CacheKeysProvider.GetRefreshKey(user.Id),
-                newRefreshToken,
-                TimeSpan.FromDays(30),
-                cancellationToken);
-
-            return new TokenResponse(newAccessToken, newRefreshToken);
+            return new TokenResponse(newAccessToken, refreshToken!);
         }
 
         public async Task<Guid> GenerateNewActivateCodeAsync(Guid id, CancellationToken cancellationToken = default)
@@ -184,22 +139,7 @@ namespace UserService.BLL.Services
                 throw new BadRequestException("The account is already activated.");
             }
 
-            var activateCode = CodeProvider.GenerateSixDigitCode();
-
-            await cacheService.SetAsync(
-                CacheKeysProvider.GetActivateKey(userEntity.Id),
-                activateCode,
-                TimeSpan.FromMinutes(1),
-                cancellationToken);
-
-            //I'll move it to an event later
-            await emailService.SendEmail(new EmailDto
-            {
-                To = userEntity.Email,
-                Subject = "Activation code",
-                Body = activateCode.ToString()
-            },
-            cancellationToken);
+            await GenerateAcivateCodeAsync(userEntity, cancellationToken);
 
             return userEntity.Id;
         }
@@ -218,7 +158,7 @@ namespace UserService.BLL.Services
 
             if (role is null)
             {
-                throw new Exception();
+                throw new Exception("There are no roles in the server");
             }
 
             newUser.Id = Guid.NewGuid();
@@ -230,6 +170,38 @@ namespace UserService.BLL.Services
 
             await userRepository.CreateAsync(userEntity, cancellationToken);
 
+            await unitOfWork.SaveChangesAsync();
+
+            //I'll move it to an event later
+            await GenerateAcivateCodeAsync(userEntity, cancellationToken);
+
+            return userEntity.Id;
+        }
+
+        private Guid GetUserIdFromToken(string? refreshToken)
+        {
+            if (refreshToken is null)
+            {
+                throw new UnauthorizedException();
+            }
+
+            var claims = jwtService.GetClaimsFromToken(refreshToken);
+
+            if (claims is null)
+            {
+                throw new UnauthorizedException();
+            }
+
+            if (!claims.TryGetValue(CustomClaims.USER_ID_CLAIM_KEY, out var id) && id is not Guid)
+            {
+                throw new UnauthorizedException();
+            }
+
+            return Guid.Parse(id.ToString()!);
+        }
+
+        private async Task GenerateAcivateCodeAsync(UserEntity userEntity, CancellationToken cancellationToken = default)
+        {
             var activateCode = CodeProvider.GenerateSixDigitCode();
 
             await cacheService.SetAsync(
@@ -238,7 +210,6 @@ namespace UserService.BLL.Services
                 TimeSpan.FromMinutes(1),
                 cancellationToken);
 
-            //I'll move it to an event later
             await emailService.SendEmail(new EmailDto
             {
                 To = userEntity.Email,
@@ -246,8 +217,40 @@ namespace UserService.BLL.Services
                 Body = activateCode.ToString()
             },
             cancellationToken);
+        }
 
-            return userEntity.Id;
+        private async Task ValidateRefreshTokenAsync(Guid userId, string refreshToken, CancellationToken cancellationToken = default)
+        {
+            var token = await cacheService.GetAsync<string>(
+                CacheKeysProvider.GetRefreshKey(userId),
+                cancellationToken);
+
+            if (token is null)
+            {
+                throw new UnauthorizedException();
+            }
+
+            if (token != refreshToken)
+            {
+                throw new UnauthorizedException();
+            }
+        }
+
+        private async Task ValidateActivatePassAsync(Guid userId, int activatePass, CancellationToken cancellationToken = default)
+        {
+            var code = await cacheService.GetAsync<int>(
+                CacheKeysProvider.GetActivateKey(userId),
+                cancellationToken);
+
+            if (code is 0)
+            {
+                throw new BadRequestException("Activation code has expired or does not exist.");
+            }
+
+            if (code != activatePass)
+            {
+                throw new BadRequestException("Incorrect code");
+            }
         }
     }
 }

@@ -20,13 +20,11 @@ namespace UserService.DAL.Repositories
         public virtual async Task CreateAsync(T entity, CancellationToken cancellationToken)
         {
             await _dbSet.AddAsync(entity, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public virtual async Task DeleteAsync(T entity, CancellationToken cancellationToken)
+        public virtual void Delete(T entity)
         {
             _dbSet.Remove(entity);
-            await _context.SaveChangesAsync(cancellationToken);
         }
 
         public virtual async Task<List<T>> GetAllAsync(CancellationToken cancellationToken)
@@ -43,10 +41,9 @@ namespace UserService.DAL.Repositories
                 .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
         }
 
-        public virtual async Task UpdateAsync(T entity, CancellationToken cancellationToken)
+        public virtual void Update(T entity)
         {
             _dbSet.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

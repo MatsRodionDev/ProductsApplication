@@ -7,6 +7,5 @@ namespace UserService.DAL.Interfaces
     {
         Task<UserEntity?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
         Task<List<UserEntity>> GetActivatedUsersAsync(int page, int pageSize, CancellationToken cancellationToken = default);
-        Task UpdateProfileAsync(Guid userId, string firstName, string lastName, CancellationToken cancellationToken = default);
     }
 }

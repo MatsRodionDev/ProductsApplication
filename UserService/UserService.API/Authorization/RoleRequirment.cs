@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Shared.Enums;
 
-namespace UserService.BLL.Common.Auth
+namespace UserService.API.Authorization
 {
     public class RoleRequirment : IAuthorizationRequirement
     {

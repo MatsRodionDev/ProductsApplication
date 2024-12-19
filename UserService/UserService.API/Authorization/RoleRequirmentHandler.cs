@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection;
 using Shared.Consts;
 using Shared.Enums;
 
 
-namespace UserService.BLL.Common.Auth
+namespace UserService.API.Authorization
 {
     public class RoleRequirmentHandler : AuthorizationHandler<RoleRequirment>
     {

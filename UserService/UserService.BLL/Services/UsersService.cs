@@ -9,6 +9,7 @@ namespace UserService.BLL.Services
     public class UsersService(
         IUserRepository userRepository, 
         IRoleRepository roleRepository,
+        IUnitOfWork unitOfWork,
         IMapper mapper) : IUsersService
     {
         public async Task<User> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -28,7 +29,18 @@ namespace UserService.BLL.Services
 
         public async Task UpdateAsyc(Guid userId, string firstName, string lastName, CancellationToken cancellationToken = default)
         {
-           await userRepository.UpdateProfileAsync(userId, firstName, lastName, cancellationToken);
+            var userEntity = await userRepository.GetByIdAsync(userId, cancellationToken);
+            
+            if(userEntity is null)
+            {
+                throw new NotFoundException("There is no user with this id");
+            }
+
+            userEntity.FirstName = firstName;
+            userEntity.LastName = lastName;
+
+            userRepository.Update(userEntity);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         public async Task UpdateRoleToUser(Guid userId, Guid roleId, CancellationToken cancellationToken = default)
@@ -41,7 +53,8 @@ namespace UserService.BLL.Services
 
             user.RoleId = roleId;
 
-            await userRepository.UpdateAsync(user, cancellationToken);
+            userRepository.Update(user);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

@@ -4,14 +4,11 @@ using UserService.DAL.Entities;
 
 namespace UserService.BLL.Profiles
 {
-    public class BusinessLogicLayerProfile : Profile
+    public class UserProfile : Profile
     {
-        public BusinessLogicLayerProfile()
+        public UserProfile()
         {
             CreateMap<UserEntity, User>()
-                .ReverseMap();
-
-            CreateMap<RoleEntity, Role>()
                 .ReverseMap();
 
         }

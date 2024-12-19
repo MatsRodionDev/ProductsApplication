@@ -24,13 +24,18 @@ namespace UserService.BLL.Services
         {
             var jsonStringValue = JsonSerializer.Serialize(value);
 
-            await distributedCache.SetStringAsync(key, jsonStringValue,
-                new DistributedCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = expirationTime is null
-                    ? TimeSpan.FromDays(30)
-                    : expirationTime
-                }, cancellationToken);
+            var options = new DistributedCacheEntryOptions();
+
+            if(expirationTime != null)
+            {
+                options.SetAbsoluteExpiration(expirationTime.Value);
+            }
+
+            await distributedCache.SetStringAsync(
+                key, 
+                jsonStringValue,
+                options,
+                cancellationToken);
         }
 
         public Task RemoveAsync(string key, CancellationToken cancellationToken)

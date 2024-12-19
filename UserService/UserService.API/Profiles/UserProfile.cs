@@ -5,9 +5,9 @@ using UserService.BLL.Models;
 
 namespace UserService.API.Profiles
 {
-    public class ApiProfile : Profile
+    public class UserProfile : Profile
     {
-        public ApiProfile()
+        public UserProfile()
         {
             CreateMap<RegisterUserRequest, User>()
                 .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(er => er.Password));

@@ -2,8 +2,8 @@
 {
     public static class CacheKeysProvider
     {
-        private static readonly string REFRESH_PREFIX = "refresh:";
-        private static readonly string ACTIVATE_PREFIX = "activate:";
+        private const string REFRESH_PREFIX = "refresh:";
+        private const string ACTIVATE_PREFIX = "activate:";
 
         public static string GetRefreshKey(Guid userId) 
             => REFRESH_PREFIX + userId.ToString();

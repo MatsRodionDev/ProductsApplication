@@ -19,15 +19,7 @@ namespace UserService.BLL.Services
 
         public async Task SendEmail(EmailDto request, CancellationToken cancellationToken = default)
         {
-            var email = new MimeMessage();
-
-            email.From.Add(MailboxAddress.Parse(_options.From));
-            email.To.Add(MailboxAddress.Parse(request.To));
-            email.Subject = request.Subject;
-            email.Body = new TextPart(TextFormat.Html) 
-            { 
-                Text = request.Body 
-            };
+            var email = GetMimeMessage(request);
 
             using var smtpClient = new SmtpClient();
 
@@ -41,6 +33,21 @@ namespace UserService.BLL.Services
             {
                 _logger.LogError(ex.Message);
             }
+        }
+
+        private MimeMessage GetMimeMessage(EmailDto request)
+        {
+            var email = new MimeMessage();
+
+            email.From.Add(MailboxAddress.Parse(_options.From));
+            email.To.Add(MailboxAddress.Parse(request.To));
+            email.Subject = request.Subject;
+            email.Body = new TextPart(TextFormat.Html)
+            {
+                Text = request.Body
+            };
+
+            return email;
         }
     }
 }

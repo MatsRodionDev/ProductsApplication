@@ -33,14 +33,5 @@ namespace UserService.DAL.Repositories
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
         }
-
-        public async Task UpdateProfileAsync(Guid userId,string firstName, string lastName, CancellationToken cancellationToken = default)
-        {
-            await _dbSet
-              .Where(p => p.Id == userId)
-              .ExecuteUpdateAsync(u => u
-                  .SetProperty(p => p.FirstName, firstName)
-                  .SetProperty(p => p.LastName, lastName));
-        }
     }
 }

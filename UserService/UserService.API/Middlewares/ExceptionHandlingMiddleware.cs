@@ -26,31 +26,28 @@ namespace UserService.API.Middlewares
             }
             catch (NotFoundException exception)
             {
-                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                await HandleExceptionAsync(context, exception);
+                await HandleExceptionAsync(context, exception, StatusCodes.Status404NotFound);
             }
             catch (BadRequestException exception)
             {
-                context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                await HandleExceptionAsync(context, exception);
+                await HandleExceptionAsync(context, exception, StatusCodes.Status400BadRequest);
             }
             catch (UnauthorizedException exception)
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await HandleExceptionAsync(context, exception);
+                await HandleExceptionAsync(context, exception, StatusCodes.Status401Unauthorized);
             }
             catch (Exception exception)
             {
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                await HandleExceptionAsync(context, exception);
+                await HandleExceptionAsync(context, exception, StatusCodes.Status500InternalServerError);
             }
         }
 
-        private Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private Task HandleExceptionAsync(HttpContext context, Exception exception, int statusCode)
         {
             _logger.LogError("An error occurred: {Message}", exception.Message);
 
             context.Response.ContentType = "application/json";
+            context.Response.StatusCode = statusCode;
 
             var response = new
             {

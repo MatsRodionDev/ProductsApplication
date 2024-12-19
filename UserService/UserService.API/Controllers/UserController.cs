@@ -9,7 +9,7 @@ using UserService.BLL.Interfaces.Services;
 namespace UserService.API.Controllers
 {
     [Controller]
-    [Route("[controller]")]
+    [Route("api/users")]
     public class UserController(
         IUsersService userService,
         IMapper mapper) : ControllerBase
@@ -36,36 +36,11 @@ namespace UserService.API.Controllers
             return Ok(usersResponse);
         }
 
-        [Authorize]
-        [HttpGet("profile")]
-        public async Task<IActionResult> GetProfileIdAsync(CancellationToken cancellationToken)
-        {
-            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
-
-            var user = await userService.GetByIdAsync(userId, cancellationToken);
-
-            var userResponse = mapper.Map<UserResponse>(user);
-
-            return Ok(userResponse);
-        }
-
-
-        [Authorize]
-        [HttpPatch("profile")]
-        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest dto ,CancellationToken cancellationToken)
-        {
-            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
-
-            await userService.UpdateAsyc(userId, dto.FirstName, dto.LastName, cancellationToken);
-
-            return NoContent();
-        }
-
         [Authorize(Policy = Policies.ADMIN)]
-        [HttpPatch("role")]
-        public async Task<IActionResult> UpdateRoleToUser([FromBody] UpdateRoleToUserRequest dto, CancellationToken cancellationToken)
+        [HttpPatch("{userId}/role")]
+        public async Task<IActionResult> UpdateRoleToUser(Guid userId, [FromBody] UpdateRoleToUserRequest dto, CancellationToken cancellationToken)
         {
-            await userService.UpdateRoleToUser(dto.UserId, dto.RoleId, cancellationToken);
+            await userService.UpdateRoleToUser(userId, dto.RoleId, cancellationToken);
 
             return NoContent();
         }
