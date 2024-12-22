@@ -22,7 +22,13 @@ namespace ProductsService.Application.Common.DI
                 cfg.AddOpenBehavior(typeof(CacheInvalidationPipeline<,>));  
             });
 
-            services.AddAutoMapper(typeof(ApplicationLayerProfile));
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<CategoryProfile>();
+                cfg.AddProfile<ProductProfile>();
+                cfg.AddProfile<FiltersProfile>();
+                cfg.AddProfile<ImageProfile>();
+            });
 
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         }

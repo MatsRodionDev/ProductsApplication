@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using ProductsService.Application.Common.Dto.Responses;
 using ProductsService.Application.UseCases.ProductUseCases.Commands.Create;
 using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByFilters;
 using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByUserId;
@@ -10,9 +9,9 @@ using ProductsService.Domain.Models;
 
 namespace ProductsService.Application.Common.Profiles
 {
-    public class ApplicationLayerProfile : Profile
+    public class ProductProfile : Profile
     {
-        public ApplicationLayerProfile()
+        public ProductProfile()
         {
             CreateMap<CreateProductCommand, Product>()
                 .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => MapCategories(src.Categories)))
@@ -23,13 +22,6 @@ namespace ProductsService.Application.Common.Profiles
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.ToString()));
 
             CreateMap<GetProductsByUserIdRequest, GetUsersProductsFilters>();
-
-            CreateMap<Product, ProductResponseDto>()
-                .ReverseMap();
-            CreateMap<Category, CategoryResponseDto>()
-                .ReverseMap();
-            CreateMap<Image, ImageResponseDto>()
-                .ReverseMap();
         }
 
         private List<IFormFile> MapImageFiles(List<IFormFile>? images)
