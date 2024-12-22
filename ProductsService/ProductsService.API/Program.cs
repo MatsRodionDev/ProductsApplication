@@ -5,6 +5,9 @@ using ProductsService.Application.Common.DI;
 using ProductsService.API.Middlewares;
 using ProductsService.Infrastructure.MessageBroker;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +29,31 @@ builder.Services.AddApplicationLayer(builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        var jwtOptions = builder.Configuration.GetSection("JwtOptions");
+
+        options.TokenValidationParameters = new()
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions["SecretKey"]!))
+        };
+
+        options.Events = new JwtBearerEvents()
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies["access"];
+
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 var app = builder.Build();
 

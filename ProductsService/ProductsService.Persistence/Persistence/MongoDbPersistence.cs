@@ -24,7 +24,5 @@ namespace ProductsService.Persistence.Persistence
             };
             ConventionRegistry.Register("My Solution Conventions", pack, t => true);
         }
-
-        
     }
 }

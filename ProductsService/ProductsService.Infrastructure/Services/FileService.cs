@@ -53,20 +53,7 @@ namespace ProductsService.Infrastructure.Services
                 await _minioClient.MakeBucketAsync(new MakeBucketArgs()
                     .WithBucket(_minioOptions.BucketName));
 
-                var policyJson = $@"{{
-                      ""Version"": ""2012-10-17"",
-                      ""Statement"": [
-                        {{
-                          ""Effect"": ""Allow"",
-                          ""Principal"": {{ ""AWS"": [""*""] }},
-                          ""Action"": [""s3:GetBucketLocation"", ""s3:ListBucket"", ""s3:GetObject""],
-                          ""Resource"": [
-                            ""arn:aws:s3:::{_minioOptions.BucketName}"",
-                            ""arn:aws:s3:::{_minioOptions.BucketName}/*""
-                          ]
-                        }}
-                      ]
-                    }}";
+                var policyJson = _minioOptions.Policy;
 
                 var args = new SetPolicyArgs()
                     .WithBucket(_minioOptions.BucketName)

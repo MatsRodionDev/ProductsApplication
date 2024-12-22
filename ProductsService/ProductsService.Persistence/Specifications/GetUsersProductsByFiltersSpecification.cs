@@ -1,6 +1,7 @@
 ﻿using ProductsService.Domain.Enums;
 using ProductsService.Domain.Filters;
 using ProductsService.Domain.Models;
+using System.Linq.Expressions;
 
 namespace ProductsService.Persistence.Specifications
 {
@@ -17,39 +18,31 @@ namespace ProductsService.Persistence.Specifications
                 AddCriteria(p => p.Categories.Any(c => c.Name == filters.Category));
             }
 
-            if (filters.Asc)
+            switch (filters.OrderBy)
             {
-                switch (filters.OrderBy)
-                {
-                    case OrderBy.Id:
-                        AddOrderBy(p => p.Id);
-                        break;
+                case OrderBy.Id:
+                    AddOrderByOrByDescending(p => p.Id, filters.Asc);
+                    break;
 
-                    case OrderBy.Name:
-                        AddOrderBy(p => p.Name);
-                        break;
+                case OrderBy.Name:
+                    AddOrderByOrByDescending(p => p.Name, filters.Asc);
+                    break;
 
-                    case OrderBy.Price:
-                        AddOrderBy(p => p.Price);
-                        break;
-                }
+                case OrderBy.Price:
+                    AddOrderByOrByDescending(p => p.Price, filters.Asc);
+                    break;
+            }
+        }
+
+        private void AddOrderByOrByDescending(Expression<Func<Product, object>> predicate, bool asc)
+        {
+            if (asc)
+            {
+                AddOrderBy(predicate);
             }
             else
             {
-                switch (filters.OrderBy)
-                {
-                    case OrderBy.Id:
-                        AddOrderByDescending(p => p.Id);
-                        break;
-
-                    case OrderBy.Name:
-                        AddOrderByDescending(p => p.Name);
-                        break;
-
-                    case OrderBy.Price:
-                        AddOrderByDescending(p => p.Price);
-                        break;
-                }
+                AddOrderByDescending(predicate);
             }
         }
     }

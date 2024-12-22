@@ -1,9 +1,9 @@
-﻿namespace ProductsService.Domain.Models
-{
-    public class Product
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
+﻿using ProductsService.Domain.Abstrctions;
 
+namespace ProductsService.Domain.Models
+{
+    public class Product : RootModel
+    {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int Quantity { get; set; }

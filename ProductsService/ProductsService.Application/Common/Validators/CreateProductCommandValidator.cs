@@ -32,10 +32,10 @@ namespace ProductsService.Application.Common.Validators
 
             RuleFor(command => command.ImageFiles)
                 .Cascade(CascadeMode.Stop)
-                .Must(HaveValidImageFiles).WithMessage("Invalid image files.");
+                .Must(files => HaveValidImageFiles(files)).WithMessage("Invalid image files.");
         }
 
-        private bool HaveValidImageFiles(List<IFormFile> files)
+        private bool HaveValidImageFiles(List<IFormFile>? files)
         {
             if (files == null || files.Count == 0)
                 return true;

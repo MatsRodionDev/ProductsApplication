@@ -4,6 +4,5 @@
         string Name,
         string Description,
         int Quantity,
-        int Price,
-        Guid UserId);
+        int Price);
 }

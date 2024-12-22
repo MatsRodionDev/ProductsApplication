@@ -18,44 +18,6 @@ namespace ProductsService.Infrastructure.DI
     {
         public static void AddInfrastructureLayer(this IServiceCollection services, IConfiguration configuration)
         {
-            //var jwtOptions = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
-
-            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            //    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-            //    {
-            //        options.TokenValidationParameters = new()
-            //        {
-            //            ValidateIssuer = false,
-            //            ValidateAudience = false,
-            //            ValidateLifetime = true,
-            //            ValidateIssuerSigningKey = true,
-            //            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions!.SecretKey))
-            //        };
-
-            //        options.Events = new JwtBearerEvents()
-            //        {
-            //            OnMessageReceived = context =>
-            //            {
-            //                context.Token = context.Request.Cookies[CookiesConstants.ACCESS];
-
-            //                return Task.CompletedTask;
-            //            }
-            //        };
-            //    });
-
-            //services.AddAuthorization(options =>
-            //{
-            //    options.AddPolicy(Policies.ADMIN, policy =>
-            //    {
-            //        policy.AddRequirements(new RoleRequirment(RoleEnum.Admin));
-            //    });
-
-
-            //    options.AddPolicy(Policies.USER, policy =>
-            //    {
-            //        policy.AddRequirements(new RoleRequirment(RoleEnum.User));
-            //    });
-            //});
 
             services.AddMassTransit(busConfigurator =>
             {
@@ -84,8 +46,6 @@ namespace ProductsService.Infrastructure.DI
             {
                 options.Configuration = configuration.GetConnectionString("Redis");
             });
-
-            //services.AddSingleton<IAuthorizationHandler, RoleRequirmentHandler>();
 
             var minioOptions = configuration.GetSection(nameof(MinioOptions));
 

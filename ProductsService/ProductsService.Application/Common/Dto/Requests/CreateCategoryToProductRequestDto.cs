@@ -3,6 +3,5 @@
 namespace ProductsService.Application.Common.Dto.Requests
 {
     public record CreateCategoryToProductRequestDto(
-        Categories Category,
-        Guid UserId);
+        Categories Category);
 }
