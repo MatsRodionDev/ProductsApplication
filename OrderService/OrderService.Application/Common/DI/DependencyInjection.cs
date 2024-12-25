@@ -21,7 +21,8 @@ namespace OrderService.Application.Common.DI
                 cfg.AddProfile<OrderFiltersProfile>();
                 cfg.AddProfile<OrderProfile>();
                 cfg.AddProfile<OrderItemProfile>();
-                cfg.AddProfile<TakeProductDtoProfile>();
+                cfg.AddProfile<CreateOrderProfile>();
+                cfg.AddProfile<BasketItemProfile>();
             });
         }
     }

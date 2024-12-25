@@ -9,7 +9,6 @@ using OrderService.Domain.Models;
 namespace OrderService.Application.UseCases.OrderUseCases.Create
 {
     internal sealed class CreateOrderRequestHandler(
-        IOrderRepository orderRepository,
         IProductService productService,
         IUnitOfWork unitOfWork,
         IMapper mapper) : IRequestHandler<CreateOrderRequest>
@@ -41,7 +40,7 @@ namespace OrderService.Application.UseCases.OrderUseCases.Create
                 }
             };
 
-            await orderRepository.CreateAsync(order, cancellationToken);
+            await unitOfWork.OrderRepository.CreateAsync(order, cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }

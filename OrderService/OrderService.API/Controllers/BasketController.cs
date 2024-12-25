@@ -29,22 +29,30 @@ namespace OrderService.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBasket([FromBody] CreateBasketRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateBasket( CancellationToken cancellationToken)
         {
+            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+
+            var request = new CreateBasketRequest(userId);
+
             await mediator.Send(request, cancellationToken);
 
             return Created();
         }
 
-        [HttpPatch("item")]
-        public async Task<IActionResult> AddItemToBasket([FromBody] AddItemToBasketRequest request, CancellationToken cancellationToken)
+        [HttpPatch("items")]
+        public async Task<IActionResult> AddItemToBasket([FromBody] AddItemToBasketRequestDto dto, CancellationToken cancellationToken)
         {
+            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+
+            var request = new AddItemToBasketRequest(userId, dto.ProductId, dto.Quantity);
+
             await mediator.Send(request, cancellationToken);
 
             return NoContent();
         }
 
-        [HttpPatch("item/{productId}")]
+        [HttpPatch("items/{productId}")]
         public async Task<IActionResult> UpdateItemQuantityInBasket(Guid productId, [FromBody] UpdateItemQuantityRequestDto dto, CancellationToken cancellationToken)
         {
             var userId = Guid.Parse(User.FindFirst("userId")!.Value);
@@ -56,9 +64,11 @@ namespace OrderService.API.Controllers
             return NoContent();
         }
 
-        [HttpPatch("clear")]
-        public async Task<IActionResult> ClearBasket([FromBody] Guid userId, CancellationToken cancellationToken)
+        [HttpDelete]
+        public async Task<IActionResult> ClearBasket(CancellationToken cancellationToken)
         {
+            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+
             var request = new ClearBasketRequest(userId);
 
             await mediator.Send(request, cancellationToken);
@@ -66,7 +76,7 @@ namespace OrderService.API.Controllers
             return NoContent();
         }
 
-        [HttpDelete("item/{productId}")]
+        [HttpDelete("items/{productId}")]
         public async Task<IActionResult> DeleteItemFromBasket(Guid productId, CancellationToken cancellationToken)
         {
             var userId = Guid.Parse(User.FindFirst("userId")!.Value);

@@ -1,15 +1,13 @@
 ﻿using AutoMapper;
 using OrderService.Application.Common.Dtos;
-using OrderService.Application.UseCases.OrderUseCases.Create;
 using OrderService.Domain.Models;
 
 namespace OrderService.Application.Common.Profiles
 {
-    public class TakeProductDtoProfile : Profile
+    public class BasketItemProfile : Profile
     {
-        public TakeProductDtoProfile()
+        public BasketItemProfile()
         {
-            CreateMap<CreateOrderRequest, TakeProductDto> ();
             CreateMap<BasketItem, TakeProductDto>();
         }
     }

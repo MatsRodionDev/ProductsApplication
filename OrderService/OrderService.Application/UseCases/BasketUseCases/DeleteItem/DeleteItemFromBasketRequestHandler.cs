@@ -5,12 +5,11 @@ using OrderService.Domain.Interfaces;
 namespace OrderService.Application.UseCases.BasketUseCases.DeleteItem
 {
     internal sealed class DeleteItemFromBasketRequestHandler(
-        IBasketRepository basketRepository,
         IUnitOfWork unitOfWork) : IRequestHandler<DeleteItemFromBasketRequest>
     {
         public async Task Handle(DeleteItemFromBasketRequest request, CancellationToken cancellationToken)
         {
-            var basket = await basketRepository.GetByUserIdWithTrackingAsync(request.UserId, cancellationToken)
+            var basket = await unitOfWork.BasketRepository.GetByUserIdWithTrackingAsync(request.UserId, cancellationToken)
                 ?? throw new NotFoundException("There is no basket with this id");
 
             var item = basket.BasketItems

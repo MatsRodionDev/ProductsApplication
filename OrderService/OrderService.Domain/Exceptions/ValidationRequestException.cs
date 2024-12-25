@@ -2,5 +2,5 @@
 
 namespace OrderService.Domain.Exceptions
 {
-    public class ValidationRequestException(string[] errors) : Exception(JsonSerializer.Serialize(errors));
+    public class ValidationRequestException(string message) : Exception(message);
 }

@@ -9,6 +9,8 @@ namespace OrderService.Infrastructure.Grpc
 {
     public class ProductService : IProductService
     {
+        //I am gonna replace this service with gRPC service
+
         private readonly List<Product> products =
         [
             new Product { Id = Guid.Parse("f47ac10b-58cc-4372-a567-0e02b2c3d479"), Name = "Product 1", Description = "Description of Product 1", Quantity = 10, Price = 9.99m, UserId = Guid.Parse("1d3f0e1c-5f6a-45c3-b8b2-5c3f7a1e0c5b") },

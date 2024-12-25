@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using OrderService.Domain.Exceptions;
+using System.Text;
 
 namespace OrderService.Application.Common.Behaiviors
 {
@@ -8,8 +9,6 @@ namespace OrderService.Application.Common.Behaiviors
         IEnumerable<IValidator<TRequest>> validators) : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IBaseRequest
     {
-
-
         public async Task<TResponse> Handle(
             TRequest request, 
             RequestHandlerDelegate<TResponse> next, 
@@ -26,9 +25,16 @@ namespace OrderService.Application.Common.Behaiviors
                 .Where(validationFailure => validationFailure is not null)
                 .Select(failure => failure.ErrorMessage).ToArray();
 
-            if (errorMessages.Length != 0)
+            var errors = new StringBuilder();
+
+            foreach(var errorMessage in errorMessages ) 
             {
-                throw new ValidationRequestException(errorMessages);
+                errors.AppendLine(errorMessage);
+            }
+
+            if (errors.Length != 0)
+            {
+                throw new ValidationRequestException(errors.ToString());
             }
 
             return await next();

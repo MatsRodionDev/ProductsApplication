@@ -3,24 +3,15 @@ using System.Text.Json;
 
 namespace OrderService.API.Middlewares
 {
-    public class ExceptionHandlingMiddleware
+    public class ExceptionHandlingMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionHandlingMiddleware> logger)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-
-        public ExceptionHandlingMiddleware(
-            RequestDelegate next,
-            ILogger<ExceptionHandlingMiddleware> logger)
-        {
-            _next = next;
-            _logger = logger;
-        }
-
         public async Task InvokeAsync(HttpContext context)
         {
             try
             {
-                await _next(context);
+                await next(context);
             }
             catch (NotFoundException exception)
             { 
@@ -36,7 +27,7 @@ namespace OrderService.API.Middlewares
             }
             catch (ValidationRequestException exception)
             {
-                await HandleValidationExceptionAsync(context, exception, StatusCodes.Status400BadRequest);
+                await HandleExceptionAsync(context, exception, StatusCodes.Status400BadRequest);
             }
             catch (Exception exception)
             {
@@ -44,28 +35,9 @@ namespace OrderService.API.Middlewares
             }
         }
 
-        private Task HandleValidationExceptionAsync(HttpContext context, Exception exception, int statusCode)
-        {
-            _logger.LogError("An error occurred: {Message}", exception.Message);
-
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = statusCode;
-
-            var messages = JsonSerializer.Deserialize<string[]>(exception.Message);
-
-            var response = new
-            {
-                StatusCode = context.Response.StatusCode,
-                Message = "Validation errors occurred.",
-                Errors = messages,
-            };
-
-            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
-        }
-
         private Task HandleExceptionAsync(HttpContext context, Exception exception, int statusCode)
         {
-            _logger.LogError("An error occurred: {Message}", exception.Message);
+            logger.LogError("An error occurred: {Message}", exception.Message);
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
