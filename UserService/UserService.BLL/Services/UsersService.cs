@@ -7,14 +7,12 @@ using UserService.DAL.Interfaces;
 namespace UserService.BLL.Services
 {
     public class UsersService(
-        IUserRepository userRepository, 
-        IRoleRepository roleRepository,
         IUnitOfWork unitOfWork,
         IMapper mapper) : IUsersService
     {
         public async Task<User> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            var user = await userRepository.GetByIdAsync(userId, cancellationToken)
+            var user = await unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken)
                 ?? throw new NotFoundException("User with such id does not exist");
 
             return mapper.Map<User>(user);
@@ -22,14 +20,14 @@ namespace UserService.BLL.Services
 
         public async Task<List<User>> GetAllUsersAsync(int page, int pageSize, CancellationToken cancellationToken = default)
         {
-            var user = await userRepository.GetActivatedUsersAsync(page, pageSize, cancellationToken);
+            var user = await unitOfWork.UserRepository.GetActivatedUsersAsync(page, pageSize, cancellationToken);
 
             return mapper.Map<List<User>>(user);
         }
 
         public async Task UpdateAsyc(Guid userId, string firstName, string lastName, CancellationToken cancellationToken = default)
         {
-            var userEntity = await userRepository.GetByIdAsync(userId, cancellationToken);
+            var userEntity = await unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken);
             
             if(userEntity is null)
             {
@@ -39,21 +37,21 @@ namespace UserService.BLL.Services
             userEntity.FirstName = firstName;
             userEntity.LastName = lastName;
 
-            userRepository.Update(userEntity);
+            unitOfWork.UserRepository.Update(userEntity);
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         public async Task UpdateRoleToUser(Guid userId, Guid roleId, CancellationToken cancellationToken = default)
         {
-            var user = await userRepository.GetByIdAsync(userId, cancellationToken)
+            var user = await unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken)
                  ?? throw new NotFoundException("User with such id does not exist");
 
-            _ = await roleRepository.GetByIdAsync(roleId, cancellationToken)
+            _ = await unitOfWork.RoleRepository.GetByIdAsync(roleId, cancellationToken)
                  ?? throw new NotFoundException("Role with such id does not exist");
 
             user.RoleId = roleId;
 
-            userRepository.Update(user);
+            unitOfWork.UserRepository.Update(user);
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }

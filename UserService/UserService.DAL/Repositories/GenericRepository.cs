@@ -37,13 +37,12 @@ namespace UserService.DAL.Repositories
         public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         {
             return await _dbSet
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
+                .FirstAsync(e => e.Id == id, cancellationToken);
         }
 
         public virtual void Update(T entity)
         {
-            _dbSet.Entry(entity).State = EntityState.Modified;
+            _dbSet.Update(entity);
         }
     }
 }

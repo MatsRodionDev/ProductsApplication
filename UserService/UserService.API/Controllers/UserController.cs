@@ -44,5 +44,29 @@ namespace UserService.API.Controllers
 
             return NoContent();
         }
+
+        [Authorize]
+        [HttpPatch("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest dto, CancellationToken cancellationToken)
+        {
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
+
+            await userService.UpdateAsyc(userId, dto.FirstName, dto.LastName, cancellationToken);
+
+            return NoContent();
+        }
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfileIdAsync(CancellationToken cancellationToken)
+        {
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
+
+            var user = await userService.GetByIdAsync(userId, cancellationToken);
+
+            var userResponse = mapper.Map<UserResponse>(user);
+
+            return Ok(userResponse);
+        }
     }
 }

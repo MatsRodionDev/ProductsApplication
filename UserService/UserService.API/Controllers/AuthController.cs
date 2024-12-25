@@ -16,19 +16,6 @@ namespace UserService.API.Controllers
         IUsersService userService,
         IMapper mapper) : ControllerBase
     {
-        [Authorize]
-        [HttpGet("profile")]
-        public async Task<IActionResult> GetProfileIdAsync(CancellationToken cancellationToken)
-        {
-            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
-
-            var user = await userService.GetByIdAsync(userId, cancellationToken);
-
-            var userResponse = mapper.Map<UserResponse>(user);
-
-            return Ok(userResponse);
-        }
-
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody]RegisterUserRequest dto, CancellationToken cancellationToken)
         {
@@ -91,17 +78,6 @@ namespace UserService.API.Controllers
             Response.Cookies.Delete(CookiesConstants.REFRESH);
 
             return Ok();
-        }
-
-        [Authorize]
-        [HttpPatch("profile")]
-        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest dto, CancellationToken cancellationToken)
-        {
-            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
-
-            await userService.UpdateAsyc(userId, dto.FirstName, dto.LastName, cancellationToken);
-
-            return NoContent();
         }
     }
 }

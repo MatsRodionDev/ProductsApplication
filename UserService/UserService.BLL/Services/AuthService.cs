@@ -16,17 +16,15 @@ namespace UserService.BLL.Services
     public class AuthService(
         ICacheService cacheService,
         IEmailService emailService,
-        IUserRepository userRepository,
         IUnitOfWork unitOfWork,
         IJwtService jwtService,
-        IRoleRepository roleRepository,
         IPasswordHasher passwordHasher,
         IMapper mapper) : IAuthService
     {
 
         public async Task ActivateAsync(Guid userId, int activatePass, CancellationToken cancellationToken = default)
         {
-            var userEntity = await userRepository.GetByIdAsync(userId, cancellationToken);
+            var userEntity = await unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken);
 
             if (userEntity is null)
             {
@@ -38,10 +36,10 @@ namespace UserService.BLL.Services
                 throw new BadRequestException("An account with this ID has already been activated.");
             }
 
-            await ValidateActivatePassAsync(userId, activatePass, cancellationToken);
+            await ValidateActivateCodeAsync(userId, activatePass, cancellationToken);
 
             userEntity.IsActivated = true;
-            userRepository.Update(userEntity);
+            unitOfWork.UserRepository.Update(userEntity);
 
             await cacheService.RemoveAsync(
                 CacheKeysProvider.GetActivateKey(userId),
@@ -52,7 +50,7 @@ namespace UserService.BLL.Services
 
         public async Task<TokenResponse> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
         {
-            var userEntity = await userRepository.GetByEmailAsync(email, cancellationToken);
+            var userEntity = await unitOfWork.UserRepository.GetByEmailAsync(email, cancellationToken);
 
             if (userEntity is null)
             {
@@ -73,9 +71,7 @@ namespace UserService.BLL.Services
                 throw new BadRequestException("This account has not been activated");
             }
 
-            var isPasswordValid = passwordHasher.Verify(password, userEntity.PasswordHash);
-
-            if (!isPasswordValid)
+            if (!passwordHasher.Verify(password, userEntity.PasswordHash))
             {
                 throw new BadRequestException("Incorrect email or password");
             }
@@ -109,7 +105,7 @@ namespace UserService.BLL.Services
 
             await ValidateRefreshTokenAsync(userId, refreshToken!, cancellationToken);
 
-            var userEntity = await userRepository.GetByIdAsync(userId, cancellationToken);
+            var userEntity = await unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken);
 
             if (userEntity is null)
             {
@@ -117,9 +113,7 @@ namespace UserService.BLL.Services
             }
 
             var user = mapper.Map<User>(userEntity);
-
             var role = user.Role!.Name;
-
             var newAccessToken = jwtService.GenerateAccesToken(user, role);
 
             return new TokenResponse(newAccessToken, refreshToken!);
@@ -127,7 +121,7 @@ namespace UserService.BLL.Services
 
         public async Task<Guid> GenerateNewActivateCodeAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var userEntity = await userRepository.GetByIdAsync(id, cancellationToken); 
+            var userEntity = await unitOfWork.UserRepository.GetByIdAsync(id, cancellationToken); 
 
             if (userEntity is null)
             {
@@ -139,14 +133,14 @@ namespace UserService.BLL.Services
                 throw new BadRequestException("The account is already activated.");
             }
 
-            await GenerateAcivateCodeAsync(userEntity, cancellationToken);
+            await SendActivateCodeAsync(userEntity, cancellationToken);
 
             return userEntity.Id;
         }
 
         public async Task<Guid> RegisterAsync(User newUser, CancellationToken cancellationToken = default)
         {
-            var user = await userRepository
+            var user = await unitOfWork.UserRepository
                 .GetByEmailAsync(newUser.Email, cancellationToken);
 
             if(user is not null)
@@ -154,7 +148,7 @@ namespace UserService.BLL.Services
                 throw new BadRequestException("User with such email already exist");
             }
 
-            var role = await roleRepository.GetByNameAsync(RoleEnum.User.ToString(), cancellationToken);
+            var role = await unitOfWork.RoleRepository.GetByNameAsync(RoleEnum.User.ToString(), cancellationToken);
 
             if (role is null)
             {
@@ -163,17 +157,16 @@ namespace UserService.BLL.Services
 
             newUser.Id = Guid.NewGuid();
             newUser.RoleId = role.Id;
-
             newUser.PasswordHash = passwordHasher.Generate(newUser.PasswordHash);
 
             var userEntity = mapper.Map<UserEntity>(newUser);
 
-            await userRepository.CreateAsync(userEntity, cancellationToken);
+            await unitOfWork.UserRepository.CreateAsync(userEntity, cancellationToken);
 
             await unitOfWork.SaveChangesAsync();
 
             //I'll move it to an event later
-            await GenerateAcivateCodeAsync(userEntity, cancellationToken);
+            await SendActivateCodeAsync(userEntity, cancellationToken);
 
             return userEntity.Id;
         }
@@ -200,7 +193,7 @@ namespace UserService.BLL.Services
             return Guid.Parse(id.ToString()!);
         }
 
-        private async Task GenerateAcivateCodeAsync(UserEntity userEntity, CancellationToken cancellationToken = default)
+        private async Task SendActivateCodeAsync(UserEntity userEntity, CancellationToken cancellationToken = default)
         {
             var activateCode = CodeProvider.GenerateSixDigitCode();
 
@@ -225,7 +218,7 @@ namespace UserService.BLL.Services
                 CacheKeysProvider.GetRefreshKey(userId),
                 cancellationToken);
 
-            if (token is null)
+            if (token is null)  
             {
                 throw new UnauthorizedException();
             }
@@ -236,7 +229,7 @@ namespace UserService.BLL.Services
             }
         }
 
-        private async Task ValidateActivatePassAsync(Guid userId, int activatePass, CancellationToken cancellationToken = default)
+        private async Task ValidateActivateCodeAsync(Guid userId, int activatePass, CancellationToken cancellationToken = default)
         {
             var code = await cacheService.GetAsync<int>(
                 CacheKeysProvider.GetActivateKey(userId),

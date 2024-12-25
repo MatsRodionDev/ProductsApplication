@@ -6,12 +6,12 @@ using UserService.DAL.Interfaces;
 namespace UserService.BLL.Services
 {
     public class RoleService(
-        IRoleRepository roleRepository,
+        IUnitOfWork unitOfWork,
         IMapper mapper) : IRoleService
     {
         public async Task<List<Role>> GetAllRolesAsync(CancellationToken cancellationToken = default)
         {
-            var roleEntities = await roleRepository.GetAllAsync(cancellationToken);
+            var roleEntities = await unitOfWork.RoleRepository.GetAllAsync(cancellationToken);
 
             return mapper.Map<List<Role>>(roleEntities);
         }
