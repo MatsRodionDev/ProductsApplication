@@ -1,4 +1,4 @@
-﻿namespace ProductsService.Application.Common
+﻿namespace ProductsService.Infrastructure.Services
 {
     public class MinioOptions
     {

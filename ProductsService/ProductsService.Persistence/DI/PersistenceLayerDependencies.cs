@@ -7,6 +7,7 @@ using ProductsService.Domain.Interfaces;
 using MongoDB.Driver;
 using ProductsService.Domain.Models;
 using ProductsService.Persistence.Clients;
+using ProductsService.Infrastructure.Interfaces;
 
 namespace ProductsService.Persistence.DI
 {
@@ -21,11 +22,10 @@ namespace ProductsService.Persistence.DI
             services.AddScoped<IMongoQueryContext, MongoQueryContext>();
 
             services.AddScoped<IProductQueryRepository, ProductQueryRepository>();
+            services.AddScoped<IUpdatableProductQueryRepository, ProductQueryRepository>();
             services.AddScoped<IProductCommandRepository, ProductCommandRepository>();
 
             MongoDbPersistence.Configure();
         }
-
-        
     }
 }

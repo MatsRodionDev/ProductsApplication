@@ -2,15 +2,12 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Minio;
-using MongoDB.Driver;
 using ProductsService.Application.Common;
 using ProductsService.Application.Common.Interfaces;
 using ProductsService.Application.Common.Interfaces.Services;
-using ProductsService.Domain.Models;
 using ProductsService.Infrastructure.MessageBroker;
 using ProductsService.Infrastructure.MessageBroker.Consumers;
 using ProductsService.Infrastructure.Services;
-using ProductsService.Persistence.Interfaces;
 
 namespace ProductsService.Infrastructure.DI
 {

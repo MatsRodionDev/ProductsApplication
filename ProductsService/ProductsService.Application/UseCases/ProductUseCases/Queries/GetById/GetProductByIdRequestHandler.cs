@@ -14,10 +14,8 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetById
     public class GetProductByIdRequestHandler(
         IProductQueryRepository productRepository,
         IMapper mapper,
-        IOptions<MinioOptions> options) : IQueryHandler<GetProductByIdRequest, ProductResponseDto>
+        IFileService fileService) : IQueryHandler<GetProductByIdRequest, ProductResponseDto>
     {
-        private readonly MinioOptions _minioOptions = options.Value;
-
         public async Task<ProductResponseDto> Handle(GetProductByIdRequest request, CancellationToken cancellationToken)
         {
             var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
@@ -29,7 +27,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetById
 
             foreach (var image in product.Images)
             {
-                image.ImageUrl = $"http://{_minioOptions.Endpoint}/{_minioOptions.BucketName}/{image.ImageName}";
+                image.ImageUrl = fileService.GetFileUrl(image.ImageUrl);
             }
 
             return mapper.Map<ProductResponseDto>(product);

@@ -6,7 +6,7 @@ using ProductsService.Persistence.Interfaces;
 namespace ProductsService.Persistence.Repositories
 {
     public class GenericRepository<TEntity>
-        where TEntity : RootModel
+        where TEntity : IBaseModel
     {
         protected readonly IMongoContext _context;
         protected readonly IMongoCollection<TEntity> _dbSet;
@@ -14,7 +14,6 @@ namespace ProductsService.Persistence.Repositories
         public GenericRepository(IMongoContext context)
         {
             _context = context;
-
             _dbSet = _context.GetCollection<TEntity>(nameof(TEntity));
         }
 

@@ -1,14 +1,15 @@
 ﻿using MassTransit;
 using ProductsService.Application.Common.Contracts;
 using ProductsService.Domain.Interfaces;
+using ProductsService.Infrastructure.Interfaces;
 
 namespace ProductsService.Infrastructure.MessageBroker.Consumers
 {
     public sealed class ProductUpdatedEventConsumer(
         IProductCommandRepository commandRepository,
-        IProductQueryRepository queryRepository) : IConsumer<ProductUpdated>
+        IUpdatableProductQueryRepository queryRepository) : IConsumer<ProductUpdatedEvent>
     {
-        public async Task Consume(ConsumeContext<ProductUpdated> context)
+        public async Task Consume(ConsumeContext<ProductUpdatedEvent> context)
         {
             var product = await commandRepository.GetByIdAsync(context.Message.ProductId);
 

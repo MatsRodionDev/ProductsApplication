@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using ProductsService.Application.Common.Abstractions;
-using ProductsService.Application.Common.Events.Product;
+using ProductsService.Application.Common.Contracts;
 using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Domain.Models;
@@ -12,7 +12,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
         IFileService fileService,
         IProductCommandRepository productRepository,
         IMapper mapper,
-        IMediator mediator) : ICommandHandler<CreateProductCommand>
+        IPublisher publisher) : ICommandHandler<CreateProductCommand>
     {
         public async Task Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
@@ -20,21 +20,22 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
 
             if(request.ImageFiles is not null)
             {
-                foreach (var image in request.ImageFiles)
-                {
-                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+                var imageTasks = request.ImageFiles
+                    .Select(async f =>
+                        {
+                            var fileName = await fileService.UploadFileAsync(f, cancellationToken);
 
-                    product.Images.Add(new Image
-                    {
-                        ImageName = fileName
-                    });
+                            return new Image { ImageName = fileName };
+                        });
 
-                    await fileService.UploadFileAsync(fileName, image, cancellationToken);
-                }
+                var images = await Task.WhenAll(imageTasks);
+                product.Images = images.ToList();
             }
 
             await productRepository.AddAsync(product);
-            await mediator.Publish(new ProductCreatedEvent(product.Id), cancellationToken);
+            await publisher.Publish(
+                new ProductCreatedEvent(product.Id),
+                cancellationToken);
         }
     }
 }

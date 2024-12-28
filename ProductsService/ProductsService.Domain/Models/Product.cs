@@ -2,8 +2,10 @@
 
 namespace ProductsService.Domain.Models
 {
-    public class Product : RootModel
+    public class Product : IBaseModel
     {
+        public Guid Id { get; set; } = Guid.NewGuid();
+
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int Quantity { get; set; }

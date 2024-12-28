@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using Microsoft.Extensions.Options;
-using ProductsService.Application.Common;
 using ProductsService.Application.Common.Abstractions;
 using ProductsService.Application.Common.Dto.Responses;
+using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Filters;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Domain.Models;
@@ -12,10 +11,8 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetByUser
     public class GetProductsByUserIdRequestHandler(
          IMapper mapper,
          IProductQueryRepository productRepository,
-         IOptions<MinioOptions> options) : IQueryHandler<GetProductsByUserIdRequest, List<ProductResponseDto>>
+         IFileService fileService) : IQueryHandler<GetProductsByUserIdRequest, List<ProductResponseDto>>
     {
-        private readonly MinioOptions _minioOptions = options.Value;
-
         public async Task<List<ProductResponseDto>> Handle(GetProductsByUserIdRequest request, CancellationToken cancellationToken)
         {
             var filters = mapper.Map<GetUsersProductsFilters>(request);
@@ -33,7 +30,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetByUser
             {
                 foreach (var image in product.Images)
                 {
-                    image.ImageUrl = $"http://{_minioOptions.Endpoint}/{_minioOptions.BucketName}/{image.ImageName}";
+                    image.ImageUrl = fileService.GetFileUrl(image.ImageUrl);
                 }
             }
 

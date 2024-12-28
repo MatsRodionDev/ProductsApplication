@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Minio.DataModel.Args;
 using Minio;
-using ProductsService.Application.Common;
 using Microsoft.AspNetCore.Http;
 using ProductsService.Application.Common.Interfaces.Services;
 
@@ -27,18 +26,27 @@ namespace ProductsService.Infrastructure.Services
                 cancellationToken);
         }
 
-        public async Task UploadFileAsync(string objName, IFormFile file, CancellationToken cancellationToken = default)
+        public async Task<string> UploadFileAsync(IFormFile file, CancellationToken cancellationToken = default)
         {
             await CreateBucketAsync();
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
 
             var stream = file.OpenReadStream();
 
             await _minioClient.PutObjectAsync(new PutObjectArgs()
                 .WithBucket(_minioOptions.BucketName)
-                .WithObject(objName)
+                .WithObject(fileName)
                 .WithStreamData(stream)
                 .WithObjectSize(stream.Length)
                 .WithContentType("application/octet-stream"), cancellationToken);
+
+            return fileName;
+        }
+
+        public string GetFileUrl(string fileName)
+        {
+            return $"http://{_minioOptions.Endpoint}/{_minioOptions.BucketName}/{fileName}";
         }
 
         private async Task<bool> BucketExistsAsync()
@@ -48,18 +56,20 @@ namespace ProductsService.Infrastructure.Services
 
         private async Task CreateBucketAsync()
         {
-            if (!await BucketExistsAsync())
+            if (await BucketExistsAsync())
             {
-                await _minioClient.MakeBucketAsync(new MakeBucketArgs()
+                return;
+            }
+
+            await _minioClient.MakeBucketAsync(new MakeBucketArgs()
                     .WithBucket(_minioOptions.BucketName));
 
-                var policyJson = _minioOptions.Policy;
+            var policyJson = _minioOptions.Policy;
 
-                var args = new SetPolicyArgs()
-                    .WithBucket(_minioOptions.BucketName)
-                    .WithPolicy(policyJson);
-                await _minioClient.SetPolicyAsync(args);
-            }
+            var args = new SetPolicyArgs()
+                .WithBucket(_minioOptions.BucketName)
+                .WithPolicy(policyJson);
+            await _minioClient.SetPolicyAsync(args);
         }
     }
 }

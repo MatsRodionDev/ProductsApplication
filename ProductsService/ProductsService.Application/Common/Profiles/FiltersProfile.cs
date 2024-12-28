@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
-using ProductsService.Application.Common.Dto.Responses;
-using ProductsService.Domain.Models;
+using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByFilters;
+using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByUserId;
+using ProductsService.Domain.Filters;
 
 namespace ProductsService.Application.Common.Profiles
 {
@@ -8,8 +9,10 @@ namespace ProductsService.Application.Common.Profiles
     {
         public FiltersProfile()
         {
-            CreateMap<Product, ProductResponseDto>()
-                .ReverseMap();
+            CreateMap<GetProductsByFiltersRequest, GetProductsFilters>()
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.ToString()));
+
+            CreateMap<GetProductsByUserIdRequest, GetUsersProductsFilters>();
         }
     }
 }

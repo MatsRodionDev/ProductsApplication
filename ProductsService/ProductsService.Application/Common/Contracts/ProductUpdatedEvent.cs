@@ -1,4 +1,4 @@
 ﻿namespace ProductsService.Application.Common.Contracts
 {
-    public record ProductUpdated(Guid ProductId);
+    public record ProductUpdatedEvent(Guid ProductId);
 }

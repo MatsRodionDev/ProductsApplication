@@ -3,6 +3,7 @@ using MediatR;
 using System.Text.Json;
 using ProductsService.Domain.Exceptions;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace ProductsService.Application.Common.Behaviors
 {
@@ -28,9 +29,16 @@ namespace ProductsService.Application.Common.Behaviors
                 .Where(validationFailure => validationFailure is not null)
                 .Select(failure => failure.ErrorMessage).ToArray();
 
+            var errors = new StringBuilder();
+
+            foreach (var error in errorMessages) 
+            {
+                errors.AppendLine(error);
+            }
+
             if(errorMessages.Length != 0)
             {
-                throw new ValidationRequestException(errorMessages);
+                throw new ValidationRequestException(errors.ToString());
             }
             
             return await next();

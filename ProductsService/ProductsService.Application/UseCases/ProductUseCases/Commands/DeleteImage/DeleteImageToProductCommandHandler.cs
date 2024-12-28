@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using ProductsService.Application.Common.Abstractions;
-using ProductsService.Application.Common.Events.Product;
+using ProductsService.Application.Common.Contracts;
 using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
@@ -10,7 +10,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteIm
     public class DeleteImageToProductCommandHandler(
         IProductCommandRepository repository,
         IFileService fileService,
-        IMediator mediator) : ICommandHandler<DeleteImageToProductCommand>
+        IPublisher publisher) : ICommandHandler<DeleteImageToProductCommand>
     {
         public async Task Handle(DeleteImageToProductCommand request, CancellationToken cancellationToken)
         {
@@ -39,7 +39,9 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteIm
             await repository.UpdateAsync(product, cancellationToken);
             await fileService.RemoveFileAsync(image.ImageName, cancellationToken);
 
-            await mediator.Publish(new ProductUpdatedEvent(product.Id), cancellationToken);
+            await publisher.Publish(
+                new ProductUpdatedEvent(product.Id), 
+                cancellationToken);
         }
     }
 }

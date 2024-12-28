@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using ProductsService.Application.Common.Abstractions;
-using ProductsService.Application.Common.Events.Product;
+using ProductsService.Application.Common.Contracts;
 using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
@@ -11,7 +11,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateIm
     public class CreateImageToProductCommandHandler(
         IProductCommandRepository repository,
         IFileService fileService,
-        IMediator mediator) : ICommandHandler<CreateImageToProductCommand>
+        IPublisher publisher) : ICommandHandler<CreateImageToProductCommand>
     {
         public async Task Handle(CreateImageToProductCommand request, CancellationToken cancellationToken)
         {
@@ -27,17 +27,15 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateIm
                 throw new UnauthorizedException("User with such id cannot change this product");
             }
 
+            var fileName = await fileService.UploadFileAsync(request.File, cancellationToken);
             var image = new Image
             {
-                ImageName = $"{Guid.NewGuid()}{Path.GetExtension(request.File.FileName)}"
+                ImageName = fileName
             };
-
             product.Images.Add(image);
 
-            await fileService.UploadFileAsync(image.ImageName, request.File, cancellationToken);
-
             await repository.UpdateAsync(product, cancellationToken);
-            await mediator.Publish(
+            await publisher.Publish(
                 new ProductUpdatedEvent(product.Id),
                 cancellationToken);
         }

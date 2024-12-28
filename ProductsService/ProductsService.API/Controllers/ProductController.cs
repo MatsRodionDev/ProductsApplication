@@ -38,23 +38,6 @@ namespace ProductsService.API.Controllers
             return Ok(product);
         }
 
-        [HttpGet("user/{id}")]
-        public async Task<IActionResult> GetAllByUserId(Guid id, [FromQuery] FiltersRequestDto dto, CancellationToken cancellationToken)
-        {
-            var request = new GetProductsByUserIdRequest(
-                id,
-                dto.Category.ToString(),
-                dto.Name,
-                dto.OrderBy, 
-                dto.Asc,
-                dto.Page,
-                dto.PageSize);
-
-            var product = await mediator.Send(request, cancellationToken);
-
-            return Ok(product);
-        }
-
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] CreateProductRequestDto dto, CancellationToken cancellationToken)
@@ -108,7 +91,7 @@ namespace ProductsService.API.Controllers
         }
 
         [Authorize]
-        [HttpPatch("{id}/image")]
+        [HttpPatch("{id}/images")]
         public async Task<IActionResult> CreateImageToProduct(Guid id, [FromForm] CreateImageToProductRequestDto dto, CancellationToken cancellationToken)
         {
             var userId = Guid.Parse(User.FindFirst("userId")!.Value);
@@ -124,7 +107,7 @@ namespace ProductsService.API.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{productId}/image/{imageId}")]
+        [HttpDelete("{productId}/images/{imageId}")]
         public async Task<IActionResult> DeleteImageToProduct(Guid productId, Guid imageId, CancellationToken cancellationToken)
         {
             var userId = Guid.Parse(User.FindFirst("userId")!.Value);
@@ -137,7 +120,7 @@ namespace ProductsService.API.Controllers
         }
 
         [Authorize]
-        [HttpPatch("{id}/category")]
+        [HttpPatch("{id}/categories")]
         public async Task<IActionResult> CreateCategoryToProduct(Guid id, [FromBody] CreateCategoryToProductRequestDto dto, CancellationToken cancellationToken)
         {
             var userId = Guid.Parse(User.FindFirst("userId")!.Value);
@@ -153,7 +136,7 @@ namespace ProductsService.API.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{productId}/category/{categoryId}")]
+        [HttpDelete("{productId}/categories/{categoryId}")]
         public async Task<IActionResult> DeleteCategoryToProduct(Guid productId, Guid categoryId, CancellationToken cancellationToken)
         {
             var userId = Guid.Parse(User.FindFirst("userId")!.Value);

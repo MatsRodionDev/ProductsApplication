@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using ProductsService.Application.Common.Abstractions;
-using ProductsService.Application.Common.Events.Product;
-using ProductsService.Application.Common.Interfaces.Services;
+using ProductsService.Application.Common.Contracts;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Domain.Models;
@@ -10,7 +9,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateCa
 {
     public class CreateCategoryToProductCommandHandler(
         IProductCommandRepository repository,
-        IMediator mediator) : ICommandHandler<CreateCategoryToProductCommand>
+        IPublisher publisher) : ICommandHandler<CreateCategoryToProductCommand>
     {
         public async Task Handle(CreateCategoryToProductCommand request, CancellationToken cancellationToken)
         {
@@ -34,7 +33,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateCa
             product.Categories.Add(category);
 
             await repository.UpdateAsync(product, cancellationToken);
-            await mediator.Publish(
+            await publisher.Publish(
                 new ProductUpdatedEvent(product.Id),
                 cancellationToken);
         }
