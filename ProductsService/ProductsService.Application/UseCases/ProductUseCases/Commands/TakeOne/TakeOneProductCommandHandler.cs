@@ -1,7 +1,7 @@
-﻿using MediatR;
-using ProductsService.Application.Common.Abstractions;
+﻿using ProductsService.Application.Common.Abstractions;
+using ProductsService.Application.Common.Contracts;
 using ProductsService.Application.Common.Dto.Responses;
-using ProductsService.Application.Common.Events.Product;
+using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
 
@@ -9,7 +9,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.TakeOne
 {
     internal sealed class TakeOneProductCommandHandler(
         IProductCommandRepository commandRepository,
-        IMediator mediator) : ICommandHandler<TakeOneProductCommand, TakedProductResponseDto>
+        IEventBus eventBus) : ICommandHandler<TakeOneProductCommand, TakedProductResponseDto>
     {
         public async Task<TakedProductResponseDto> Handle(TakeOneProductCommand request, CancellationToken cancellationToken)
         {
@@ -29,7 +29,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.TakeOne
 
             await commandRepository.UpdateAsync(product);
 
-            await mediator.Publish(new ProductUpdatedEvent(product.Id), cancellationToken);
+            await eventBus.PublishAsync(new ProductUpdatedEvent(product.Id), cancellationToken);
 
             return new TakedProductResponseDto(
                 product.Id,

@@ -1,7 +1,7 @@
-﻿using MediatR;
-using ProductsService.Application.Common.Abstractions;
+﻿using ProductsService.Application.Common.Abstractions;
+using ProductsService.Application.Common.Contracts;
 using ProductsService.Application.Common.Dto.Responses;
-using ProductsService.Application.Common.Events.Product;
+using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Domain.Models;
@@ -11,7 +11,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Take
 {
     internal sealed class TakeProductsCommandHandler(
         IProductCommandRepository commandRepository,
-        IMediator mediator) : ICommandHandler<TakeProductsCommand, List<TakedProductResponseDto>>
+        IEventBus eventBus) : ICommandHandler<TakeProductsCommand, List<TakedProductResponseDto>>
     {
         public async Task<List<TakedProductResponseDto>> Handle(TakeProductsCommand request, CancellationToken cancellationToken)
         {
@@ -54,9 +54,8 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Take
             }
 
             await commandRepository.UpdateManyAsync(products, cancellationToken);
-
             var publishTasks = products
-                .Select(p => mediator.Publish(
+                .Select(p => eventBus.PublishAsync(
                     new ProductUpdatedEvent(p.Id),
                     cancellationToken));
 

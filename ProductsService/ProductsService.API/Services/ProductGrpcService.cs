@@ -16,7 +16,7 @@ namespace ProductsService.API.Services
         public override async Task<ProductByIdResponse> GetProduct(ProductByIdRequest request, ServerCallContext context)
         {
             var product = await mediator.Send(
-                new GetProductByIdRequest(Guid.Parse(request.Id)), 
+                new GetProductByIdQuery(Guid.Parse(request.Id)), 
                 context.CancellationToken);
 
             return mapper.Map<ProductByIdResponse>(product);
@@ -27,13 +27,11 @@ namespace ProductsService.API.Services
             var productsToTake = mapper.Map<List<TakeProductRequestDto>>(request.Products);
 
             var command = new TakeProductsCommand(productsToTake);
-
             var products = await mediator.Send(command, context.CancellationToken);
 
             var productsResponse = mapper.Map<List<ProductResponse>>(products);
 
             var response = new ProductsListResponse();
-
             response.Products.AddRange(productsResponse);
 
             return response;
@@ -42,7 +40,6 @@ namespace ProductsService.API.Services
         public override async Task<ProductResponse> TakeOneProduct(ProductRequest request, ServerCallContext context)
         {
             var command = mapper.Map<TakeOneProductCommand>(request);
-
             var product = await mediator.Send(command, context.CancellationToken);
 
             return mapper.Map<ProductResponse>(product);

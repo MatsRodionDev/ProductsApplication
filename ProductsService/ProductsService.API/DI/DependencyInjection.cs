@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using ProductsService.API.Interceptors;
+using ProductsService.API.Profiles;
 using ProductsService.Infrastructure.MessageBroker;
 using ProductsService.Infrastructure.Services;
 using System.Text;
@@ -43,6 +45,18 @@ namespace ProductsService.API.DI
 
             services.AddSingleton(sp =>
                 sp.GetRequiredService<IOptions<MessageBrokerSettings>>().Value);
+
+            services.AddGrpc(options =>
+            {
+                options.Interceptors.Add<ExceptionHandlingInterceptor>();
+            });
+            services.AddGrpcReflection();
+
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<ImageGrpcProfile>();
+                cfg.AddProfile<ProductGrpcProfile>();
+            });
         }
     }
 }
