@@ -12,7 +12,7 @@ namespace ProductsService.API.Controllers
         [HttpGet("{id}/products")]
         public async Task<IActionResult> GetAllByUserId(Guid id, [FromQuery] FiltersRequestDto dto, CancellationToken cancellationToken)
         {
-            var request = new GetProductsByUserIdRequest(
+            var query = new GetProductsByUserIdQuery(
                 id,
                 dto.Category.ToString(),
                 dto.Name,
@@ -21,7 +21,7 @@ namespace ProductsService.API.Controllers
                 dto.Page,
                 dto.PageSize);
 
-            var product = await mediator.Send(request, cancellationToken);
+            var product = await mediator.Send(query, cancellationToken);
 
             return Ok(product);
         }

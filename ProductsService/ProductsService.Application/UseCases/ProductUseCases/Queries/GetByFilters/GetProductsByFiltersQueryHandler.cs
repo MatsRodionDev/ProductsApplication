@@ -8,12 +8,12 @@ using ProductsService.Domain.Models;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetByFilters
 {
-    public class GetProductsByFiltersRequestHandler(
+    public class GetProductsByFiltersQueryHandler(
         IMapper mapper,
         IProductQueryRepository productRepository,
-        IFileService fileService) : IQueryHandler<GetProductsByFiltersRequest, List<ProductResponseDto>>
+        IFileService fileService) : IQueryHandler<GetProductsByFiltersQuery, List<ProductResponseDto>>
     {
-        public async Task<List<ProductResponseDto>> Handle(GetProductsByFiltersRequest request, CancellationToken cancellationToken)
+        public async Task<List<ProductResponseDto>> Handle(GetProductsByFiltersQuery request, CancellationToken cancellationToken)
         {
             var filters = mapper.Map<GetProductsFilters>(request);
 

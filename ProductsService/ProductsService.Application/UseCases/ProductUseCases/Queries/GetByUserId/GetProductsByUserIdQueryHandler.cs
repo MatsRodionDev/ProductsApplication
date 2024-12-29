@@ -8,12 +8,12 @@ using ProductsService.Domain.Models;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetByUserId
 {
-    public class GetProductsByUserIdRequestHandler(
+    public class GetProductsByUserIdQueryHandler(
          IMapper mapper,
          IProductQueryRepository productRepository,
-         IFileService fileService) : IQueryHandler<GetProductsByUserIdRequest, List<ProductResponseDto>>
+         IFileService fileService) : IQueryHandler<GetProductsByUserIdQuery, List<ProductResponseDto>>
     {
-        public async Task<List<ProductResponseDto>> Handle(GetProductsByUserIdRequest request, CancellationToken cancellationToken)
+        public async Task<List<ProductResponseDto>> Handle(GetProductsByUserIdQuery request, CancellationToken cancellationToken)
         {
             var filters = mapper.Map<GetUsersProductsFilters>(request);
 

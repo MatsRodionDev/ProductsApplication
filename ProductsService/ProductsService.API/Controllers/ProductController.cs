@@ -11,7 +11,6 @@ using ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteImage;
 using ProductsService.Application.UseCases.ProductUseCases.Commands.Update;
 using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByFilters;
 using ProductsService.Application.UseCases.ProductUseCases.Queries.GetById;
-using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByUserId;
 
 namespace ProductsService.API.Controllers
 {
@@ -21,9 +20,9 @@ namespace ProductsService.API.Controllers
         IMediator mediator) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] GetProductsByFiltersRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAll([FromQuery] GetProductsByFiltersQuery query, CancellationToken cancellationToken)
         {
-            var products = await mediator.Send(request, cancellationToken);
+            var products = await mediator.Send(query, cancellationToken);
 
             return Ok(products);
         }
@@ -31,9 +30,9 @@ namespace ProductsService.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {
-            var request = new GetProductByIdRequest(id);
+            var query = new GetProductByIdQuery(id);
 
-            var product = await mediator.Send(request, cancellationToken);
+            var product = await mediator.Send(query, cancellationToken);
 
             return Ok(product);
         }

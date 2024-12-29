@@ -3,7 +3,7 @@ using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByFilters;
 
 namespace ProductsService.Application.Common.Validators
 {
-    public class GetProductsByFiltersRequestValidator : AbstractValidator<GetProductsByFiltersRequest>
+    public class GetProductsByFiltersRequestValidator : AbstractValidator<GetProductsByFiltersQuery>
     {
         public GetProductsByFiltersRequestValidator()
         {

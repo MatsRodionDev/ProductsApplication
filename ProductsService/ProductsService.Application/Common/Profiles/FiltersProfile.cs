@@ -9,10 +9,10 @@ namespace ProductsService.Application.Common.Profiles
     {
         public FiltersProfile()
         {
-            CreateMap<GetProductsByFiltersRequest, GetProductsFilters>()
+            CreateMap<GetProductsByFiltersQuery, GetProductsFilters>()
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.ToString()));
 
-            CreateMap<GetProductsByUserIdRequest, GetUsersProductsFilters>();
+            CreateMap<GetProductsByUserIdQuery, GetUsersProductsFilters>();
         }
     }
 }

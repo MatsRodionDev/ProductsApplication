@@ -1,15 +1,15 @@
-﻿using MediatR;
-using ProductsService.Application.Common.Abstractions;
+﻿using ProductsService.Application.Common.Abstractions;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Application.Common.Contracts;
+using ProductsService.Application.Common.Interfaces;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Delete
 {
     public class DeleteProductCommandHandler(
         IProductCommandRepository repository,
-        IPublisher publisher,
+        IEventBus eventBus,
         IFileService fileService) : ICommandHandler<DeleteProductCommand>
     {
         public async Task Handle(DeleteProductCommand request, CancellationToken cancellationToken)
@@ -32,7 +32,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Delete
             }
 
             await repository.RemoveAsync(request.ProductId, cancellationToken);
-            await publisher.Publish(
+            await eventBus.PublishAsync(
                 new ProductDeletedEvent(request.ProductId), 
                 cancellationToken);
         }

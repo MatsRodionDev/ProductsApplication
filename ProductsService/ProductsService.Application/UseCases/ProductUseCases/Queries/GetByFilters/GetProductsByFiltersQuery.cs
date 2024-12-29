@@ -7,7 +7,7 @@ using ProductsService.Domain.Models;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetByFilters
 {
-    public record GetProductsByFiltersRequest(
+    public record GetProductsByFiltersQuery(
         Categories? Category,
         string ProductName = "",
         OrderBy OrderBy = OrderBy.Id,

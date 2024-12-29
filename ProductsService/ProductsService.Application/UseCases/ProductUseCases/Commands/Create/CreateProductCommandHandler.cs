@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using MediatR;
 using ProductsService.Application.Common.Abstractions;
 using ProductsService.Application.Common.Contracts;
+using ProductsService.Application.Common.Interfaces;
 using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Domain.Models;
@@ -12,7 +12,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
         IFileService fileService,
         IProductCommandRepository productRepository,
         IMapper mapper,
-        IPublisher publisher) : ICommandHandler<CreateProductCommand>
+        IEventBus eventBus) : ICommandHandler<CreateProductCommand>
     {
         public async Task Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
@@ -21,9 +21,9 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
             if(request.ImageFiles is not null)
             {
                 var imageTasks = request.ImageFiles
-                    .Select(async f =>
+                    .Select(async file =>
                         {
-                            var fileName = await fileService.UploadFileAsync(f, cancellationToken);
+                            var fileName = await fileService.UploadFileAsync(file, cancellationToken);
 
                             return new Image { ImageName = fileName };
                         });
@@ -33,7 +33,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
             }
 
             await productRepository.AddAsync(product);
-            await publisher.Publish(
+            await eventBus.PublishAsync(
                 new ProductCreatedEvent(product.Id),
                 cancellationToken);
         }
