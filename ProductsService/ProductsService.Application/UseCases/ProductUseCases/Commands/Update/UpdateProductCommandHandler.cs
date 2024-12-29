@@ -1,6 +1,6 @@
-﻿using MediatR;
-using ProductsService.Application.Common.Abstractions;
+﻿using ProductsService.Application.Common.Abstractions;
 using ProductsService.Application.Common.Contracts;
+using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
 
@@ -8,7 +8,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Update
 {
     public class UpdateProductCommandHandler(
         IProductCommandRepository repository,
-        IPublisher publisher): ICommandHandler<UpdateProductCommand>
+        IEventBus eventBus): ICommandHandler<UpdateProductCommand>
     {
         public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
@@ -31,7 +31,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Update
                 request.Price);
 
             await repository.UpdateAsync(product, cancellationToken);
-            await publisher.Publish(
+            await eventBus.PublishAsync(
                 new ProductUpdatedEvent(product.Id),
                 cancellationToken);
         }

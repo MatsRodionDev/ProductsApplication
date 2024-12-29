@@ -1,6 +1,6 @@
-﻿using MediatR;
-using ProductsService.Application.Common.Abstractions;
+﻿using ProductsService.Application.Common.Abstractions;
 using ProductsService.Application.Common.Contracts;
+using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
 
@@ -8,7 +8,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteCa
 {
     public class DeleteCategoryToProductCommandHandler(
         IProductCommandRepository repository,
-        IPublisher publisher) : ICommandHandler<DeleteCategoryToProductCommand>
+        IEventBus eventBus) : ICommandHandler<DeleteCategoryToProductCommand>
     {
         public async Task Handle(DeleteCategoryToProductCommand request, CancellationToken cancellationToken)
         {
@@ -35,7 +35,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteCa
             product.Categories.Remove(category);
 
             await repository.UpdateAsync(product, cancellationToken);
-            await publisher.Publish(
+            await eventBus.PublishAsync(
                 new ProductUpdatedEvent(product.Id), 
                 cancellationToken);
         }

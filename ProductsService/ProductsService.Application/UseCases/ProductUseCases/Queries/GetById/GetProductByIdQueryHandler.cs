@@ -11,12 +11,12 @@ using ProductsService.Domain.Models;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetById
 {
-    public class GetProductByIdRequestHandler(
+    public class GetProductByIdQueryHandler(
         IProductQueryRepository productRepository,
         IMapper mapper,
-        IFileService fileService) : IQueryHandler<GetProductByIdRequest, ProductResponseDto>
+        IFileService fileService) : IQueryHandler<GetProductByIdQuery, ProductResponseDto>
     {
-        public async Task<ProductResponseDto> Handle(GetProductByIdRequest request, CancellationToken cancellationToken)
+        public async Task<ProductResponseDto> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
             var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
 

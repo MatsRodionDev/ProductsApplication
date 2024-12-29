@@ -6,7 +6,7 @@ using ProductsService.Domain.Models;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetByUserId
 {
-    public record GetProductsByUserIdRequest(
+    public record GetProductsByUserIdQuery(
         Guid UserId,
         string? Category,
         string ProductName = "",
