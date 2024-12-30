@@ -12,17 +12,17 @@ namespace OrderService.Application.UseCases.BasketUseCases.RemoveItem
         public async Task Handle(UpdateItemQuantityInBasketRequest request, CancellationToken cancellationToken)
         {
             var basket = await unitOfWork.BasketRepository.GetByUserIdWithTrackingAsync(request.UserId, cancellationToken)
-                ?? throw new NotFoundException("There is no basket with such userId.");
+                ?? throw new NotFoundException("There is no basket with this userId.");
 
             var product = productService.GetByIdAsync(request.ProductId)
-                ?? throw new NotFoundException("There is no prdocut with this id.");
+                ?? throw new NotFoundException("There is no product with this ID.");
 
             var item = basket.BasketItems.Find(i => i.ProductId == request.ProductId)
                ?? throw new NotFoundException("There is no product with this ID in the basket");
 
             if (product.Quantity < request.Quantity)
             {
-                throw new BadRequestException("There are no products with this id in this quantity");
+                throw new BadRequestException("There are no products with this ID in this quantity");
             }
 
             item.Quantity = request.Quantity;

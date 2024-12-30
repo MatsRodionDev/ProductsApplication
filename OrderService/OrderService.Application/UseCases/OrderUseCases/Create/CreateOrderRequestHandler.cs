@@ -2,6 +2,7 @@
 using MediatR;
 using OrderService.Application.Common.Dtos;
 using OrderService.Application.Common.Intefaces;
+using OrderService.Application.Common.Models;
 using OrderService.Domain.Enums;
 using OrderService.Domain.Interfaces;
 using OrderService.Domain.Models;
@@ -20,29 +21,44 @@ namespace OrderService.Application.UseCases.OrderUseCases.Create
             var product = productService.TakeProduct(dto);
 
             var orderId = Guid.NewGuid();
-            var totalPrice = product.Price * product.Quantity;
+            var totalPrice = CalculateTotalPrice(product.Price, product.Quantity);
 
-            var order = new Order
-            {
-                Id = orderId,
-                BuyerId = request.UserId,
-                SellerId = product.UserId,
-                Quantity = product.Quantity,
-                ToTalPrice = totalPrice,
-                Status = OrderStatus.Processing.ToString(),
-                OrderItem = new OrderItem
-                {
-                    Id = Guid.NewGuid(),
-                    OrderId = orderId,
-                    ProductId = product.Id,
-                    ProdcutName = product.Name,
-                    ProductPrice = product.Price
-                }
-            };
+            var order = CreateOrder(orderId, request.UserId, product, totalPrice);
 
             await unitOfWork.OrderRepository.CreateAsync(order, cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        private decimal CalculateTotalPrice(decimal price, int quantity)
+        {
+            return price * quantity;
+        }
+
+        private Order CreateOrder(Guid orderId, Guid buyerId, Product product, decimal totalPrice)
+        {
+            return new Order
+            {
+                Id = orderId,
+                BuyerId = buyerId,
+                SellerId = product.UserId,
+                Quantity = product.Quantity,
+                ToTalPrice = totalPrice,
+                Status = OrderStatus.Processing.ToString(),
+                OrderItem = CreateOrderItem(orderId, product)
+            };
+        }
+
+        private OrderItem CreateOrderItem(Guid orderId, Product product)
+        {
+            return new OrderItem
+            {
+                Id = Guid.NewGuid(),
+                OrderId = orderId,
+                ProductId = product.Id,
+                ProdcutName = product.Name,
+                ProductPrice = product.Price
+            };
         }
     }
 }

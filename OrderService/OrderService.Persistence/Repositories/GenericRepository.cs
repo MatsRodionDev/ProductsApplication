@@ -36,7 +36,7 @@ namespace OrderService.Persistence.Repositories
         public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         {
             return await _dbSet
-                .FindAsync(id, cancellationToken);
+                .FindAsync([id], cancellationToken);
         }
 
         public virtual void Update(T entity)

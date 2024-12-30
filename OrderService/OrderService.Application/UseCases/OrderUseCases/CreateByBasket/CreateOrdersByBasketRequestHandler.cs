@@ -31,7 +31,7 @@ namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
 
             foreach(var product in takedProducts) 
             {
-                await CreateOrderAsync(product, request.UserId, cancellationToken);
+                await CreateOrdersAsync(product, request.UserId, cancellationToken);
             }
 
             basket.BasketItems.Clear();
@@ -39,12 +39,24 @@ namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        private async Task CreateOrderAsync(Product product, Guid buyerId, CancellationToken cancellationToken = default)
+        private async Task CreateOrdersAsync(Product product, Guid buyerId, CancellationToken cancellationToken = default)
         {
             var orderId = Guid.NewGuid();
-            var totalPrice = product.Price * product.Quantity;
+            var totalPrice = CalculateTotalPrice(product.Price, product.Quantity);
 
-            var order = new Order
+            var order = CreateOrder(orderId, buyerId, product, totalPrice);
+
+            await unitOfWork.OrderRepository.CreateAsync(order, cancellationToken);
+        }
+
+        private decimal CalculateTotalPrice(decimal price, int quantity)
+        {
+            return price * quantity;
+        }
+
+        private Order CreateOrder(Guid orderId, Guid buyerId, Product product, decimal totalPrice)
+        {
+            return new Order
             {
                 Id = orderId,
                 BuyerId = buyerId,
@@ -52,17 +64,20 @@ namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
                 Quantity = product.Quantity,
                 ToTalPrice = totalPrice,
                 Status = OrderStatus.Processing.ToString(),
-                OrderItem = new OrderItem
-                {
-                    Id = Guid.NewGuid(),
-                    OrderId = orderId,
-                    ProductId = product.Id,
-                    ProdcutName = product.Name,
-                    ProductPrice = product.Price
-                }
+                OrderItem = CreateOrderItem(orderId, product)
             };
+        }
 
-            await unitOfWork.OrderRepository.CreateAsync(order, cancellationToken);
+        private OrderItem CreateOrderItem(Guid orderId, Product product)
+        {
+            return new OrderItem
+            {
+                Id = Guid.NewGuid(),
+                OrderId = orderId,
+                ProductId = product.Id,
+                ProdcutName = product.Name,
+                ProductPrice = product.Price
+            };
         }
     }
 }
