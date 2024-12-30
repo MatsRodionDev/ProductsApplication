@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Shared.Consts;
 using Shared.Enums;
+using System.Threading;
 using UserService.BLL.Common.Dtos;
 using UserService.BLL.Common.Providers;
 using UserService.BLL.Common.Responses;
@@ -52,32 +53,9 @@ namespace UserService.BLL.Services
         {
             var userEntity = await unitOfWork.UserRepository.GetByEmailAsync(email, cancellationToken);
 
-            if (userEntity is null)
-            {
-                throw new BadRequestException("Incorrect email or password");
-            }
-
-            var token = await cacheService.GetAsync<string>(
-                CacheKeysProvider.GetRefreshKey(userEntity.Id),
-                cancellationToken);
-
-            if(token is not null)
-            {
-                throw new UnauthorizedException("This account is already logged in");
-            }
-
-            if (!userEntity.IsActivated)
-            {
-                throw new BadRequestException("This account has not been activated");
-            }
-
-            if (!passwordHasher.Verify(password, userEntity.PasswordHash))
-            {
-                throw new BadRequestException("Incorrect email or password");
-            }
+            await ValidateUserAsync(userEntity, password, cancellationToken);
 
             var user = mapper.Map<User>(userEntity);
-
             var role = user.Role!.Name;
 
             var accessToken = jwtService.GenerateAccesToken(user, role);
@@ -243,6 +221,33 @@ namespace UserService.BLL.Services
             if (code != activatePass)
             {
                 throw new BadRequestException("Incorrect code");
+            }
+        }
+
+        private async Task ValidateUserAsync(UserEntity? userEntity, string password, CancellationToken cancellationToken = default)
+        {
+            if (userEntity is null)
+            {
+                throw new BadRequestException("Incorrect email or password");
+            }
+
+            var token = await cacheService.GetAsync<string>(
+                CacheKeysProvider.GetRefreshKey(userEntity.Id),
+                cancellationToken);
+
+            if (token is not null)
+            {
+                throw new UnauthorizedException("This account is already logged in");
+            }
+
+            if (!userEntity.IsActivated)
+            {
+                throw new BadRequestException("This account has not been activated");
+            }
+
+            if (!passwordHasher.Verify(password, userEntity.PasswordHash))
+            {
+                throw new BadRequestException("Incorrect email or password");
             }
         }
     }

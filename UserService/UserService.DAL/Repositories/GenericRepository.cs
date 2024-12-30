@@ -37,7 +37,7 @@ namespace UserService.DAL.Repositories
         public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         {
             return await _dbSet
-                .FirstAsync(e => e.Id == id, cancellationToken);
+                .FindAsync([id], cancellationToken);
         }
 
         public virtual void Update(T entity)
