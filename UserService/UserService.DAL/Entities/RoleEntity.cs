@@ -1,4 +1,5 @@
 ﻿using Shared.Enums;
+using System.Text.Json.Serialization;
 using UserService.DAL.Abstractions;
 
 namespace UserService.DAL.Entities

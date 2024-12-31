@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UserService.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,6 +35,7 @@ namespace UserService.DAL.Migrations
                     email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     password_hash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     is_activated = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     role_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -53,8 +54,8 @@ namespace UserService.DAL.Migrations
                 columns: new[] { "Id", "name" },
                 values: new object[,]
                 {
-                    { new Guid("69b1e40f-c624-40cb-ba5f-447e9dff57e4"), "User" },
-                    { new Guid("c1a816f8-f999-443f-baf3-daed756d6cf6"), "Admin" }
+                    { new Guid("852b97b2-3bb1-4c4d-b154-8fb7c807cac6"), "Admin" },
+                    { new Guid("cb31fa7e-e922-486f-8572-5313b4eb5f87"), "User" }
                 });
 
             migrationBuilder.CreateIndex(
