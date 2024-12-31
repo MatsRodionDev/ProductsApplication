@@ -43,7 +43,6 @@ namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
         {
             var orderId = Guid.NewGuid();
             var totalPrice = CalculateTotalPrice(product.Price, product.Quantity);
-
             var order = CreateOrder(orderId, buyerId, product, totalPrice);
 
             await unitOfWork.OrderRepository.CreateAsync(order, cancellationToken);

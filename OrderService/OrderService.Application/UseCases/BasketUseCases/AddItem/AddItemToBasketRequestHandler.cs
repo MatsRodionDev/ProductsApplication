@@ -13,10 +13,10 @@ namespace OrderService.Application.UseCases.BasketUseCases.AddItem
         public async Task Handle(AddItemToBasketRequest request, CancellationToken cancellationToken)
         {
             var basket = await unitOfWork.BasketRepository.GetByUserIdAsync(request.UserId, cancellationToken)
-                ?? throw new Exception("This basket doesnt exist");
+                ?? throw new NotFoundException("This basket doesnt exist");
 
             var product = productService.GetByIdAsync(request.ProductId)
-                ?? throw new Exception("This product doesnt exist");
+                ?? throw new NotFoundException("This product doesnt exist");
 
             if (product.Quantity < request.Quantity)
             {
@@ -33,7 +33,7 @@ namespace OrderService.Application.UseCases.BasketUseCases.AddItem
 
             if (item is not null)
             {
-                throw new Exception("This item is already in the basket");
+                throw new BadRequestException("This item is already in the basket");
             }
 
             await unitOfWork.BasketItemRepository.CreateAsync(new BasketItem(basket.Id, request.ProductId, request.Quantity), cancellationToken);

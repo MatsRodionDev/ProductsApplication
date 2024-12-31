@@ -22,11 +22,9 @@ namespace OrderService.Application.UseCases.OrderUseCases.Create
 
             var orderId = Guid.NewGuid();
             var totalPrice = CalculateTotalPrice(product.Price, product.Quantity);
-
             var order = CreateOrder(orderId, request.UserId, product, totalPrice);
 
             await unitOfWork.OrderRepository.CreateAsync(order, cancellationToken);
-
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
