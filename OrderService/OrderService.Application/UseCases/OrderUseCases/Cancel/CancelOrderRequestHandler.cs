@@ -20,7 +20,7 @@ namespace OrderService.Application.UseCases.OrderUseCases.Cancel
 
             order.Status = OrderStatus.Canceled.ToString();
 
-            orderRepository.Update(order);
+            unitOfWork.OrderRepository.Update(order);
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }

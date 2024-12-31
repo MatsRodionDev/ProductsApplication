@@ -15,7 +15,7 @@ namespace OrderService.Application.UseCases.BasketUseCases.AddItem
             var basket = await unitOfWork.BasketRepository.GetByUserIdAsync(request.UserId, cancellationToken)
                 ?? throw new Exception("This basket doesnt exist");
 
-            var product = productService.GetByIdAsync(request.ProductId)
+            var product = await productService.GetByIdAsync(request.ProductId, cancellationToken)
                 ?? throw new Exception("This product doesnt exist");
 
             if (product.Quantity < request.Quantity)

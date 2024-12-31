@@ -5,8 +5,8 @@ namespace OrderService.Application.Common.Intefaces
 {
     public interface IProductService
     {
-        List<Product> TakeProducts(List<TakeProductDto> dtos);
-        Product TakeProduct(TakeProductDto takeProduct);
-        Product? GetByIdAsync(Guid id);
+        Task<Product> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<TakedProduct> TakeProduct(TakeProductDto dto, CancellationToken cancellationToken = default);
+        Task<List<TakedProduct>> TakeProducts(List<TakeProductDto> dtos, CancellationToken cancellationToken = default);
     }
 }

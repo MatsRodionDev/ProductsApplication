@@ -29,7 +29,7 @@ namespace OrderService.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBasket( CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateBasket(CancellationToken cancellationToken)
         {
             var userId = Guid.Parse(User.FindFirst("userId")!.Value);
 

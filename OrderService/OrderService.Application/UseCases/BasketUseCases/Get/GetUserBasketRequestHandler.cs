@@ -15,31 +15,37 @@ namespace OrderService.Application.UseCases.BasketUseCases.Get
             var basket = await basketRepository.GetByUserIdAsync(request.UserId, cancellationToken)
                 ?? throw new NotFoundException("There is no basket with this id");
 
+            var basketItemDtos = await Task.WhenAll(
+                basket.BasketItems.Select(async item =>
+                {
+                    var product = await productService.GetByIdAsync(item.ProductId, cancellationToken);
+
+                    if (product == null)
+                    {
+                        return null;
+                    }
+
+                    var totalPrice = CalculateTotalPrice(product.Price, item.Quantity);
+
+                    return new BasketItemResponseDto(
+                        product.Id,
+                        item.Quantity,
+                        product.Price,
+                        totalPrice,
+                        product.Name,
+                        product.Quantity,
+                        product.Images
+                    );
+                }));
+
             return new BasketResponseDto(
                 basket.UserId,
-                basket.BasketItems
-                    .Select(item =>
-                    {
-                        var product = productService.GetByIdAsync(item.ProductId);
+                basketItemDtos.Where(i => i != null).ToList());     
+        }
 
-                        if (product is null)
-                        {
-                            return null;
-                        }
-
-                        var totalPrice = product.Price * item.Quantity;
-
-                        return new BasketItemResponseDto(
-                            product.Id,
-                            item.Quantity,
-                            product.Price,
-                            totalPrice,
-                            product.Name,
-                            product.Description,
-                            product.Quantity);
-                    })
-                    .Where(dto => dto != null)
-                    .ToList());
+        private decimal CalculateTotalPrice(decimal price, int takedQuantity)
+        {
+            return price * takedQuantity;
         }
     }
 }
