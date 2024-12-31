@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ProductsService.Infrastructure.MessageBroker;
 using ProductsService.Infrastructure.Services;
+using ProductsService.Persistence.Settings;
 using System.Text;
 
 namespace ProductsService.API.DI
@@ -12,6 +13,9 @@ namespace ProductsService.API.DI
         public static void AddPresentationLayer(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<MinioOptions>(configuration.GetSection(nameof(MinioOptions)));
+
+            services.Configure<CommandMongoDbSettings>(configuration.GetSection(nameof(CommandMongoDbSettings)));
+            services.Configure<QueryMongoDbSettings>(configuration.GetSection(nameof(QueryMongoDbSettings)));
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>

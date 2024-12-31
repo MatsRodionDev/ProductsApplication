@@ -5,14 +5,12 @@ using ProductsService.Domain.Filters;
 
 namespace ProductsService.Application.Common.Profiles
 {
-    public class FiltersProfile : Profile
+    public class ProductsFiltersProfile : Profile
     {
-        public FiltersProfile()
+        public ProductsFiltersProfile()
         {
             CreateMap<GetProductsByFiltersQuery, GetProductsFilters>()
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category.ToString()));
-
-            CreateMap<GetProductsByUserIdQuery, GetUsersProductsFilters>();
         }
     }
 }

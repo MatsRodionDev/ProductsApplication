@@ -1,10 +1,6 @@
 ﻿using AutoMapper;
-using ProductsService.Application.Common.Dto.Responses;
 using ProductsService.Application.UseCases.ProductUseCases.Commands.Create;
-using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByFilters;
-using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByUserId;
 using ProductsService.Domain.Enums;
-using ProductsService.Domain.Filters;
 using ProductsService.Domain.Models;
 
 namespace ProductsService.Application.Common.Profiles
@@ -15,9 +11,6 @@ namespace ProductsService.Application.Common.Profiles
         {
             CreateMap<CreateProductCommand, Product>()
                 .ForMember(dest => dest.Categories, opt => opt.MapFrom(src => MapCategories(src.Categories)))
-                .ReverseMap();
-
-            CreateMap<Product, ProductResponseDto>()
                 .ReverseMap();
         }
 

@@ -26,8 +26,10 @@ namespace ProductsService.Application.Common.DI
             {
                 cfg.AddProfile<CategoryProfile>();
                 cfg.AddProfile<ProductProfile>();
-                cfg.AddProfile<FiltersProfile>();
+                cfg.AddProfile<ProductResponseProfile>();
                 cfg.AddProfile<ImageProfile>();
+                cfg.AddProfile<UsersProductsFilterProfile>();
+                cfg.AddProfile<ProductsFiltersProfile>();
             });
 
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
