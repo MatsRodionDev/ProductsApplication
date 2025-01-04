@@ -3,10 +3,10 @@ using ProductsService.Infrastructure.DI;
 using ProductsService.Application.Common.DI;
 using ProductsService.API.Middlewares;
 using ProductsService.API.DI;
+using ProductsService.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddPresentationLayer(builder.Configuration);
 builder.Services.AddPersistenceLayer(builder.Configuration);
 builder.Services.AddInfrastructureLayer(builder.Configuration);
@@ -16,12 +16,12 @@ builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+    
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -33,5 +33,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGrpcReflectionService();
+app.MapGrpcService<ProductGrpcService>();
 
 app.Run();

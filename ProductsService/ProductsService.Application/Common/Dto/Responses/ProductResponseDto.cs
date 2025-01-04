@@ -5,7 +5,7 @@
         string Name,
         string Description,
         int Quantity,
-        int Price,
+        double Price,
         Guid UserId,
         List<CategoryResponseDto> Categories,
         List<ImageResponseDto> Images);
