@@ -52,7 +52,7 @@ namespace OrderService.API.Controllers
         }
 
         [HttpPatch("{orderId}")]
-        public async Task<IActionResult> UpdateOrderStatus(Guid orderId, UpdateOrderStatusRequestDto dto, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateOrderStatus(Guid orderId, [FromBody] UpdateOrderStatusRequestDto dto, CancellationToken cancellationToken)
         {
             var request = new UpdateOrderStatusRequest(orderId, dto.Status);
 
