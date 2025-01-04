@@ -7,12 +7,12 @@ using OrderService.Domain.Interfaces;
 namespace OrderService.Application.UseCases.BasketUseCases.Get
 {
     internal sealed class GetUserBasketRequestHandler(
-        IBasketRepository basketRepository,
+        IUnitOfWork unitOfWork,
         IProductService productService) : IRequestHandler<GetUserBasketRequest, BasketResponseDto>
     {
         public async Task<BasketResponseDto> Handle(GetUserBasketRequest request, CancellationToken cancellationToken)
         {
-            var basket = await basketRepository.GetByUserIdAsync(request.UserId, cancellationToken)
+            var basket = await unitOfWork.BasketRepository.GetByUserIdAsync(request.UserId, cancellationToken)
                 ?? throw new NotFoundException("There is no basket with this id");
 
             return new BasketResponseDto(
@@ -20,26 +20,31 @@ namespace OrderService.Application.UseCases.BasketUseCases.Get
                 basket.BasketItems
                     .Select(item =>
                     {
-                        var product = productService.GetByIdAsync(item.ProductId);
-
-                        if (product is null)
-                        {
-                            return null;
-                        }
-
-                        var totalPrice = product.Price * item.Quantity;
-
-                        return new BasketItemResponseDto(
-                            product.Id,
-                            item.Quantity,
-                            product.Price,
-                            totalPrice,
-                            product.Name,
-                            product.Description,
-                            product.Quantity);
+                        return GetBasketItemResponseDto(item.ProductId, item.Quantity);
                     })
                     .Where(dto => dto != null)
                     .ToList());
+        }
+
+        private BasketItemResponseDto? GetBasketItemResponseDto(Guid productId, int quantity)
+        {
+            var product = productService.GetByIdAsync(productId);
+
+            if (product is null)
+            {
+                return null;
+            }
+
+            var totalPrice = product.Price * quantity;
+
+            return new BasketItemResponseDto(
+                product.Id,
+                quantity,
+                product.Price,
+                totalPrice,
+                product.Name,
+                product.Description,
+                product.Quantity);
         }
     }
 }
