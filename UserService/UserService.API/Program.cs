@@ -1,4 +1,6 @@
+using Hangfire;
 using UserService.API.DependencyInjection;
+using UserService.API.Extensions;
 using UserService.API.Middlewares;
 using UserService.BLL.DI;
 using UserService.DAL.DI;
@@ -22,10 +24,13 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.AddJobs(builder.Configuration);
 }
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseHangfireDashboard();
 
 app.MapControllers();
 

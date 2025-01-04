@@ -1,8 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Hangfire;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using UserService.BLL.Common.Hashers;
 using UserService.BLL.Interfaces.Hashers;
+using UserService.BLL.Interfaces.Jobs;
 using UserService.BLL.Interfaces.Services;
+using UserService.BLL.Jobs;
 using UserService.BLL.Profiles;
 using UserService.BLL.Services;
 
@@ -19,6 +23,16 @@ namespace UserService.BLL.DI
                 options.Configuration = configuration.GetConnectionString("Redis");
             });
 
+            services.AddHangfire(cfg =>
+            {
+                var connectionString = configuration.GetConnectionString("ApplicationDbContext");
+
+                cfg.UseSimpleAssemblyNameTypeSerializer()
+                    .UseRecommendedSerializerSettings()
+                    .UseSqlServerStorage(connectionString);
+            });
+            services.AddHangfireServer();
+
             services.AddScoped<IUsersService, UsersService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ICacheService, CacheService>();
@@ -27,6 +41,8 @@ namespace UserService.BLL.DI
             services.AddScoped<IRoleService, RoleService>();
 
             services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+            services.AddTransient<IUserJobs, UserJobs>();
 
             services.AddAutoMapper(typeof(UserProfile));
         }
