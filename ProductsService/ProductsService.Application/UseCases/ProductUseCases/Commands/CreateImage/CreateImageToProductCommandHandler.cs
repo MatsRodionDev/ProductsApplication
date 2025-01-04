@@ -27,10 +27,9 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateIm
                 throw new UnauthorizedException("User with such id cannot change this product");
             }
 
-            var fileName = await fileService.UploadFileAsync(request.File, cancellationToken);
             var image = new Image
             {
-                ImageName = fileName
+                ImageName = await fileService.UploadFileAsync(request.File, cancellationToken)
             };
             product.Images.Add(image);
 
