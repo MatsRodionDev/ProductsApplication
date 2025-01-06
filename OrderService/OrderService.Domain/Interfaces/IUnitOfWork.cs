@@ -7,5 +7,6 @@
         IOrderRepository OrderRepository { get; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        void DataBaseMigrate();
     }
 }

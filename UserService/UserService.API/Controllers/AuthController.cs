@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Consts;
 using UserService.API.Dtos.Requests;
-using UserService.API.Dtos.Responses;
 using UserService.BLL.Interfaces.Services;
 using UserService.BLL.Models;
 
@@ -13,7 +12,6 @@ namespace UserService.API.Controllers
     [Route("api/auth")]
     public class AuthController(
         IAuthService authService,
-        IUsersService userService,
         IMapper mapper) : ControllerBase
     {
         [HttpPost("register")]

@@ -2,7 +2,7 @@
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Application.Common.Interfaces.Services;
-using ProductsService.Application.Common.Contracts;
+using Shared.Contracts;
 using ProductsService.Application.Common.Interfaces;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Delete

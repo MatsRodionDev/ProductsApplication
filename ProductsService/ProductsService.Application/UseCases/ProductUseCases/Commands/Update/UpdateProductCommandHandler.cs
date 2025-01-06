@@ -1,5 +1,5 @@
 ﻿using ProductsService.Application.Common.Abstractions;
-using ProductsService.Application.Common.Contracts;
+using Shared.Contracts;
 using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
@@ -32,7 +32,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Update
 
             await repository.UpdateAsync(product, cancellationToken);
             await eventBus.PublishAsync(
-                new ProductUpdatedEvent(product.Id),
+                new ProductUpdatedEvent(product.Id, product.Quantity),
                 cancellationToken);
         }
     }

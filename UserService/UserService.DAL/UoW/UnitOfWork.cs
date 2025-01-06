@@ -1,4 +1,5 @@
-﻿using UserService.DAL.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using UserService.DAL.Interfaces;
 
 namespace UserService.DAL.UoW
 {
@@ -13,6 +14,14 @@ namespace UserService.DAL.UoW
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
         {
             return await context.SaveChangesAsync(cancellationToken);
+        }
+
+        public void DatabaseMigrate()
+        {
+            if (context.Database.IsRelational())
+            {
+                context.Database.Migrate();
+            }
         }
     }
 }

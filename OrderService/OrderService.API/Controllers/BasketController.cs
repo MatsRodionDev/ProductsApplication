@@ -8,6 +8,7 @@ using OrderService.Application.UseCases.BasketUseCases.Create;
 using OrderService.Application.UseCases.BasketUseCases.DeleteItem;
 using OrderService.Application.UseCases.BasketUseCases.Get;
 using OrderService.Application.UseCases.BasketUseCases.RemoveItem;
+using Shared.Consts;
 
 namespace OrderService.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace OrderService.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBasket(CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new GetUserBasketRequest(userId);
 
@@ -28,22 +29,10 @@ namespace OrderService.API.Controllers
             return Ok(basket);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateBasket(CancellationToken cancellationToken)
-        {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
-
-            var request = new CreateBasketRequest(userId);
-
-            await mediator.Send(request, cancellationToken);
-
-            return Created();
-        }
-
         [HttpPatch("items")]
         public async Task<IActionResult> AddItemToBasket([FromBody] AddItemToBasketRequestDto dto, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new AddItemToBasketRequest(userId, dto.ProductId, dto.Quantity);
 
@@ -55,7 +44,7 @@ namespace OrderService.API.Controllers
         [HttpPatch("items/{productId}")]
         public async Task<IActionResult> UpdateItemQuantityInBasket(Guid productId, [FromBody] UpdateItemQuantityRequestDto dto, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new UpdateItemQuantityInBasketRequest(userId, productId, dto.Quantity);
 
@@ -67,7 +56,7 @@ namespace OrderService.API.Controllers
         [HttpDelete]
         public async Task<IActionResult> ClearBasket(CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new ClearBasketRequest(userId);
 
@@ -79,7 +68,7 @@ namespace OrderService.API.Controllers
         [HttpDelete("items/{productId}")]
         public async Task<IActionResult> DeleteItemFromBasket(Guid productId, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new DeleteItemFromBasketRequest(userId, productId);
 

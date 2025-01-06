@@ -1,4 +1,5 @@
-﻿using OrderService.Domain.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using OrderService.Domain.Interfaces;
 
 namespace OrderService.Persistence.UoW
 {
@@ -15,6 +16,14 @@ namespace OrderService.Persistence.UoW
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return await context.SaveChangesAsync(cancellationToken);
+        }
+
+        public void DataBaseMigrate()
+        {
+            if(context.Database.IsRelational())
+            {
+                context.Database.Migrate();
+            }
         }
     }
 }

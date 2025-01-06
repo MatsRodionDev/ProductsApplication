@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Hangfire;
 using Shared.Consts;
+using Shared.Contracts;
 using Shared.Enums;
 using System.Threading;
 using UserService.BLL.Common.Dtos;
@@ -9,6 +10,7 @@ using UserService.BLL.Common.Responses;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Interfaces.Hashers;
 using UserService.BLL.Interfaces.Jobs;
+using UserService.BLL.Interfaces.MessageBroker;
 using UserService.BLL.Interfaces.Services;
 using UserService.BLL.Models;
 using UserService.DAL.Entities;
@@ -22,6 +24,7 @@ namespace UserService.BLL.Services
         IJwtService jwtService,
         IPasswordHasher passwordHasher,
         IBackgroundJobClient backgroundJobClient,
+        IEventBus eventBus,
         IMapper mapper) : IAuthService
     {
 
@@ -49,6 +52,7 @@ namespace UserService.BLL.Services
                 cancellationToken);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            await eventBus.PublishAsync(new UserActivatedEvent(userEntity.Id));
         }
 
         public async Task<TokenResponse> LoginAsync(string email, string password, CancellationToken cancellationToken = default)

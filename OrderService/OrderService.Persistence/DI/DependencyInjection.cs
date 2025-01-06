@@ -19,12 +19,6 @@ namespace OrderService.Persistence.DI
                 .AddScoped<IOrderRepository, OrderRepository>()
                 .AddScoped<IBasketItemRepository, BasketItemRepository>()
                 .AddScoped<IUnitOfWork, UnitOfWork>();
-
-            var serviceProvider = services.BuildServiceProvider();
-
-            var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
-
-            context.Database.Migrate();
         }
     }
 }

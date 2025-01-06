@@ -2,6 +2,7 @@
 using ChatsService.BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Shared.Consts;
 
 namespace ChatsService.API.Hubs
 {
@@ -13,7 +14,7 @@ namespace ChatsService.API.Hubs
         public override async Task OnConnectedAsync()
         { 
             await cacheService.SetAsync(
-                Context.User!.FindFirst("userId")!.Value,
+                Context.User!.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value,
                 Context.ConnectionId);
 
             await base.OnConnectedAsync();
@@ -21,7 +22,7 @@ namespace ChatsService.API.Hubs
 
         public async Task GetAllSellersChats()
         {
-            var userId = Guid.Parse(Context.User!.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(Context.User!.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var chats = await chatService.GetAllSellersChatsAsync(userId);
 
@@ -40,7 +41,7 @@ namespace ChatsService.API.Hubs
 
         public async Task GetAllBuyersChats()
         {
-            var userId = Guid.Parse(Context.User!.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(Context.User!.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var chats = await chatService.GetAllBuyersChatsAsync(userId);
 
@@ -70,7 +71,7 @@ namespace ChatsService.API.Hubs
 
         public async Task SendMessage(string text, Guid chatId)
         {
-            var senderId = Guid.Parse(Context.User!.FindFirst("userId")!.Value);
+            var senderId = Guid.Parse(Context.User!.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var message = await chatService.SendMessageAsync(senderId, text, chatId);
 
@@ -81,7 +82,7 @@ namespace ChatsService.API.Hubs
 
         public async Task MarkMessagesAsReaded(Guid chatId)
         {
-            var userId = Guid.Parse(Context.User!.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(Context.User!.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             await chatService.MarkMessaesAsRedadedAsync(userId, chatId);
 
@@ -92,7 +93,7 @@ namespace ChatsService.API.Hubs
 
         public async Task CreateChat(Guid productId, string buyerName)
         {
-            var userId = Guid.Parse(Context.User!.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(Context.User!.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var chat = await chatService.CreateChatAsync(productId, buyerName, userId);
 
@@ -110,7 +111,7 @@ namespace ChatsService.API.Hubs
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             await cacheService.RemoveAsync(
-                Context.User!.FindFirst("userId")!.Value);
+                Context.User!.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             await base.OnDisconnectedAsync(exception);
         }

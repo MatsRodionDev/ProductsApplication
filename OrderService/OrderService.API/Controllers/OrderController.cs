@@ -9,6 +9,7 @@ using OrderService.Application.UseCases.OrderUseCases.GetByBuyerId;
 using OrderService.Application.UseCases.OrderUseCases.GetByFilters;
 using OrderService.Application.UseCases.OrderUseCases.GetBySellerId;
 using OrderService.Application.UseCases.OrderUseCases.UpdateStatus;
+using Shared.Consts;
 
 namespace OrderService.API.Controllers
 {
@@ -21,12 +22,11 @@ namespace OrderService.API.Controllers
         [HttpGet("buyer")]
         public async Task<IActionResult> GetOrdersByBuyerId(CancellationToken cancellationToken)
         {
-            var buyerId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var buyerId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new GetOrdersByBuyerIdRequest(buyerId);
 
             var orders = await mediator.Send(request, cancellationToken );
-
 
             return Ok(orders);
         }
@@ -34,7 +34,7 @@ namespace OrderService.API.Controllers
         [HttpGet("seller")]
         public async Task<IActionResult> GetOrdersBySellerId(CancellationToken cancellationToken)
         {
-            var sellerId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var sellerId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new GetOrdersBySellerIdRequest(sellerId);
 
@@ -64,7 +64,7 @@ namespace OrderService.API.Controllers
         [HttpPatch("{orderId}/cancel")]
         public async Task<IActionResult> CancelOrder(Guid orderId, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new CancelOrderRequest(orderId, userId);
 
@@ -76,7 +76,7 @@ namespace OrderService.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequestDto dto, CancellationToken cancellationToken = default)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new CreateOrderRequest(userId, dto.ProductId, dto.Quantity);
 
@@ -88,7 +88,7 @@ namespace OrderService.API.Controllers
         [HttpPost("basket")]
         public async Task<IActionResult> CreateOrderByBasket(CancellationToken cancellationToken = default)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var request = new CreateOrdersByBasketRequest(userId);
 
