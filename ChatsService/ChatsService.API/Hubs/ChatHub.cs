@@ -84,7 +84,7 @@ namespace ChatsService.API.Hubs
         {
             var userId = Guid.Parse(Context.User!.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
-            await chatService.MarkMessaesAsRedadedAsync(userId, chatId);
+            await chatService.MarkMessagesAsReadAsync(userId, chatId);
 
             await Clients
                 .OthersInGroup(chatId.ToString())

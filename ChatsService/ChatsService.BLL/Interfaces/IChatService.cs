@@ -10,6 +10,6 @@ namespace ChatsService.BLL.Interfaces
         Task<List<ChatResponseDto>> GetAllSellersChatsAsync(Guid sellerId, CancellationToken cancellationToken = default);
         Task<Chat> GetChatByIdAsync(Guid chatId, CancellationToken cancellationToken = default);
         Task<Message> SendMessageAsync(Guid senderId, string text, Guid chatId, CancellationToken cancellationToken = default);
-        Task MarkMessaesAsRedadedAsync(Guid userId, Guid chatId, CancellationToken cancellationToken = default);
+        Task MarkMessagesAsReadAsync(Guid userId, Guid chatId, CancellationToken cancellationToken = default);
     }
 }
