@@ -19,9 +19,7 @@ namespace OrderService.Application.UseCases.BasketUseCases.Get
                 basket.UserId,
                 basket.BasketItems
                     .Select(item =>
-                    {
-                        return GetBasketItemResponseDto(item.ProductId, item.Quantity);
-                    })
+                        GetBasketItemResponseDto(item.ProductId, item.Quantity))
                     .Where(dto => dto != null)
                     .ToList());
         }
