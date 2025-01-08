@@ -103,7 +103,7 @@ namespace ChatsService.BLL.Services
             return mapper.Map<Message>(message);
         }
 
-        public async Task MarkMessaesAsRedadedAsync(Guid userId, Guid chatId, CancellationToken cancellationToken)
+        public async Task MarkMessagesAsReadAsync(Guid userId, Guid chatId, CancellationToken cancellationToken)
         {
             var chat = await unitOfWork.ChatRepository.GetByIdAsync(chatId, cancellationToken)
                 ?? throw new NotFoundException("There is no chat with this id.");
@@ -122,12 +122,12 @@ namespace ChatsService.BLL.Services
         private void ReadMessages(List<MessageEntity> messages, Guid userId)
         {
             var unreadedMessages = messages
-                .Where(m => m.SenderId != userId && !m.IsReaded)
+                .Where(m => m.SenderId != userId && !m.IsRead)
                 .ToList();
 
             foreach(var message in unreadedMessages)
             {
-                message.IsReaded = true;
+                message.IsRead = true;
             }
         }
 
@@ -136,7 +136,7 @@ namespace ChatsService.BLL.Services
             var response = mapper.Map<ChatResponseDto>(chat);
             response.UnreadMessagesQuantity = chat.Messages
                 .Where(m => m.SenderId != userId)
-                .Where(m => m.IsReaded == false)
+                .Where(m => m.IsRead == false)
                 .Count();
             var messageEntity = chat.Messages
                 .OrderByDescending(m => m.CreatedAt)

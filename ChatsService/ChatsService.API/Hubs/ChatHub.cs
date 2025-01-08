@@ -83,7 +83,7 @@ namespace ChatsService.API.Hubs
         {
             var userId = Guid.Parse(Context.User!.FindFirst("userId")!.Value);
 
-            await chatService.MarkMessaesAsRedadedAsync(userId, chatId);
+            await chatService.MarkMessagesAsReadAsync(userId, chatId);
 
             await Clients
                 .OthersInGroup(chatId.ToString())

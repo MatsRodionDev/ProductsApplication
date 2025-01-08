@@ -8,7 +8,7 @@ namespace ChatsService.DAL.Entities
         public string Text { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public Guid ChatId { get; set; }
-        public bool IsReaded { get; set; }
+        public bool IsRead { get; set; }
         public ChatEntity? Chat { get; set; }
     }
 }
