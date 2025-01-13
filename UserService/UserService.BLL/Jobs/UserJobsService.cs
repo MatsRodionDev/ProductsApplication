@@ -7,9 +7,9 @@ using UserService.DAL.Interfaces;
 
 namespace UserService.BLL.Jobs
 {
-    internal sealed class UserJobs(
+    internal sealed class UserJobsService(
         IUnitOfWork unitOfWork,
-        IEmailService emailService) : IUserJobs
+        IEmailService emailService) : IUserJobsService
     {
         public async Task ClearNotActivatedAccountsAsync()
         {

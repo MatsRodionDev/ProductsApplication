@@ -2,7 +2,7 @@
 
 namespace UserService.BLL.Interfaces.Jobs
 {
-    public interface IUserJobs
+    public interface IUserJobsService
     {
         Task ClearNotActivatedAccountsAsync();
         Task SendActivateCode(string email, int activateCode);
