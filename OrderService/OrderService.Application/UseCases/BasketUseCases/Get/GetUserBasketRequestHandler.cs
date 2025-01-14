@@ -17,10 +17,8 @@ namespace OrderService.Application.UseCases.BasketUseCases.Get
                 ?? throw new NotFoundException("There is no basket with this id");
 
             var basketItemDtos = await Task.WhenAll(
-                basket.BasketItems.Select(async item =>
-                {
-                    return await GetBasketItemResponseDto(item.ProductId, item.Quantity, cancellationToken);
-                }));
+                basket.BasketItems.Select(item =>
+                    GetBasketItemResponseDto(item.ProductId, item.Quantity, cancellationToken)));
 
             return new BasketResponseDto(
                 basket.UserId,
