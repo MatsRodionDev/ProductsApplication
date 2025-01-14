@@ -186,7 +186,7 @@ namespace UserService.BLL.Services
                 TimeSpan.FromMinutes(1),
                 cancellationToken);
 
-            backgroundJobClient.Enqueue<IUserJobs>(
+            backgroundJobClient.Enqueue<IUserJobsService>(
                 job => job.SendActivateCode(userEntity.Email, activateCode));
         }
 

@@ -64,7 +64,7 @@ namespace UserService.BLL.DI
             services.AddScoped<IPasswordHasher, PasswordHasher>();
 
             services.AddTransient<IEventBus, EventBus>();
-            services.AddTransient<IUserJobs, UserJobs>();
+            services.AddTransient<IUserJobsService, UserJobsService>();
 
             services.AddAutoMapper(typeof(UserProfile));
         }
