@@ -22,7 +22,7 @@ namespace UserService.BLL.Services
             var email = GetMimeMessage(request);
 
             using var smtpClient = new SmtpClient();
-
+            smtpClient.ServerCertificateValidationCallback = (s, c, h, e) => true;
             try
             {
                 await smtpClient.ConnectAsync(_options.Host, _options.Port, SecureSocketOptions.SslOnConnect, cancellationToken);

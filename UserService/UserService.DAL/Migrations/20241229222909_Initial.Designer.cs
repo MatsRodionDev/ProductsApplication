@@ -12,8 +12,8 @@ using UserService.DAL;
 namespace UserService.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241120084209_initial")]
-    partial class initial
+    [Migration("20241229222909_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,12 +44,12 @@ namespace UserService.DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("69b1e40f-c624-40cb-ba5f-447e9dff57e4"),
+                            Id = new Guid("cb31fa7e-e922-486f-8572-5313b4eb5f87"),
                             Name = "User"
                         },
                         new
                         {
-                            Id = new Guid("c1a816f8-f999-443f-baf3-daed756d6cf6"),
+                            Id = new Guid("852b97b2-3bb1-4c4d-b154-8fb7c807cac6"),
                             Name = "Admin"
                         });
                 });
@@ -59,6 +59,9 @@ namespace UserService.DAL.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()

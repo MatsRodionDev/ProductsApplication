@@ -33,5 +33,17 @@ namespace UserService.DAL.Repositories
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<List<UserEntity>> GetNotActivatedUsersAsync(int page = 1, int pageSize = 5, CancellationToken cancellationToken = default)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Where(u => u.IsActivated == false)
+                .Where(u => u.CreatedAt.AddMinutes(1) <= DateTime.UtcNow)
+                .OrderBy(u => u.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
     }
 }

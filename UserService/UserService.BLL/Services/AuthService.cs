@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Hangfire;
 using Shared.Consts;
 using Shared.Enums;
 using System.Threading;
@@ -7,6 +8,7 @@ using UserService.BLL.Common.Providers;
 using UserService.BLL.Common.Responses;
 using UserService.BLL.Exceptions;
 using UserService.BLL.Interfaces.Hashers;
+using UserService.BLL.Interfaces.Jobs;
 using UserService.BLL.Interfaces.Services;
 using UserService.BLL.Models;
 using UserService.DAL.Entities;
@@ -16,10 +18,10 @@ namespace UserService.BLL.Services
 {
     public class AuthService(
         ICacheService cacheService,
-        IEmailService emailService,
         IUnitOfWork unitOfWork,
         IJwtService jwtService,
         IPasswordHasher passwordHasher,
+        IBackgroundJobClient backgroundJobClient,
         IMapper mapper) : IAuthService
     {
 
@@ -143,7 +145,6 @@ namespace UserService.BLL.Services
 
             await unitOfWork.SaveChangesAsync();
 
-            //I'll move it to an event later
             await SendActivateCodeAsync(userEntity, cancellationToken);
 
             return userEntity.Id;
@@ -181,13 +182,8 @@ namespace UserService.BLL.Services
                 TimeSpan.FromMinutes(1),
                 cancellationToken);
 
-            await emailService.SendEmail(new EmailDto
-            {
-                To = userEntity.Email,
-                Subject = "Activation code",
-                Body = activateCode.ToString()
-            },
-            cancellationToken);
+            backgroundJobClient.Enqueue<IUserJobsService>(
+                job => job.SendActivateCode(userEntity.Email, activateCode));
         }
 
         private async Task ValidateRefreshTokenAsync(Guid userId, string refreshToken, CancellationToken cancellationToken = default)
