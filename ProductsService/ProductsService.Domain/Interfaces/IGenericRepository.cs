@@ -9,5 +9,6 @@ namespace ProductsService.Domain.Interfaces
         Task UpdateAsync(TEntity product, CancellationToken cancellationToken = default);
         Task RemoveAsync(Guid id, CancellationToken cancellationToken = default);
         Task<TEntity> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task UpdateManyAsync(List<TEntity> entities, CancellationToken cancellationToken = default);
     }
 }

@@ -38,5 +38,15 @@ namespace ProductsService.Persistence.Repositories
                 .AsQueryable()
                 .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
         }
+
+        public virtual async Task UpdateManyAsync(List<TEntity> entities, CancellationToken cancellationToken = default)
+        {
+            var bulkOps = entities.Select(entity =>
+                 new ReplaceOneModel<TEntity>(
+                     Builders<TEntity>.Filter.Eq(e => e.Id, entity.Id),
+                     entity));
+
+            await _dbSet.BulkWriteAsync(bulkOps, cancellationToken: cancellationToken);
+        }
     }
 }

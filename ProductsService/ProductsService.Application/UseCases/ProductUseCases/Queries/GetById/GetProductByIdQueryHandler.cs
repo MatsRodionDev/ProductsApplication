@@ -1,13 +1,9 @@
 ﻿using AutoMapper;
-using MediatR;
-using Microsoft.Extensions.Options;
-using ProductsService.Application.Common;
 using ProductsService.Application.Common.Abstractions;
 using ProductsService.Application.Common.Dto.Responses;
 using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
-using ProductsService.Domain.Models;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetById
 {
