@@ -34,9 +34,10 @@ namespace OrderService.Infrastructure.Grpc
 
         public async Task<List<TakedProduct>> TakeProducts(List<TakeProductDto> dtos, CancellationToken cancellationToken)
         {
-            var request = new ProductsListRequest();
-            var products = mapper.Map<List<ProductRequest>>(dtos);
-            request.Products.AddRange(products);
+            var request = new ProductsListRequest()
+            {
+                Products = { mapper.Map<List<ProductRequest>>(dtos) }
+            };
 
             var response = await grpcClient.TakeProductsAsync(request, cancellationToken: cancellationToken);
 
