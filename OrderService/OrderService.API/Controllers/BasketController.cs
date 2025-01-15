@@ -12,7 +12,7 @@ using Shared.Consts;
 
 namespace OrderService.API.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = Policies.USER)]
     [Controller]
     [Route("api/baskets")]
     public class BasketController(IMediator mediator) : ControllerBase

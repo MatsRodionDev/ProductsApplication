@@ -41,12 +41,17 @@ namespace UserService.DAL.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("cb31fa7e-e922-486f-8572-5313b4eb5f87"),
+                            Id = new Guid("cba0e59b-ed28-44eb-9654-143fd8f89e14"),
                             Name = "User"
                         },
                         new
                         {
-                            Id = new Guid("852b97b2-3bb1-4c4d-b154-8fb7c807cac6"),
+                            Id = new Guid("7cfefc26-1d21-4be9-b554-fe9659b53d70"),
+                            Name = "Worker"
+                        },
+                        new
+                        {
+                            Id = new Guid("49e71118-35bd-4321-b87e-9c7b3ea37aff"),
                             Name = "Admin"
                         });
                 });

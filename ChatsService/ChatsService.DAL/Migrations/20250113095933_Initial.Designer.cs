@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChatsService.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250102175715_Initial")]
+    [Migration("20250113095933_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -37,6 +37,9 @@ namespace ChatsService.DAL.Migrations
                     b.Property<string>("BuyerName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
@@ -68,7 +71,7 @@ namespace ChatsService.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsReaded")
+                    b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
                     b.Property<Guid>("SenderId")
@@ -77,6 +80,9 @@ namespace ChatsService.DAL.Migrations
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 

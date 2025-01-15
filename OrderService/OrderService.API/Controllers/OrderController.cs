@@ -13,12 +13,12 @@ using Shared.Consts;
 
 namespace OrderService.API.Controllers
 {
-    [Authorize]
     [Controller]
     [Route("api/orders")]
     public class OrderController(
         IMediator mediator) : ControllerBase
     {
+        [Authorize(Policy = Policies.USER)]
         [HttpGet("buyer")]
         public async Task<IActionResult> GetOrdersByBuyerId(CancellationToken cancellationToken)
         {
@@ -31,6 +31,7 @@ namespace OrderService.API.Controllers
             return Ok(orders);
         }
 
+        [Authorize(Policy = Policies.USER)]
         [HttpGet("seller")]
         public async Task<IActionResult> GetOrdersBySellerId(CancellationToken cancellationToken)
         {
@@ -43,6 +44,7 @@ namespace OrderService.API.Controllers
             return Ok(orders);
         }
 
+        [Authorize(Policy = Policies.WORKER)]
         [HttpGet]
         public async Task<IActionResult> GetOrdersByFilters([FromQuery] GetOrdersByFiltersRequest request, CancellationToken cancellationToken)
         {
@@ -51,6 +53,7 @@ namespace OrderService.API.Controllers
             return Ok(orders);
         }
 
+        [Authorize(Policy = Policies.WORKER)]
         [HttpPatch("{orderId}")]
         public async Task<IActionResult> UpdateOrderStatus(Guid orderId, [FromBody] UpdateOrderStatusRequestDto dto, CancellationToken cancellationToken)
         {
@@ -61,6 +64,7 @@ namespace OrderService.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Policy = Policies.USER)]
         [HttpPatch("{orderId}/cancel")]
         public async Task<IActionResult> CancelOrder(Guid orderId, CancellationToken cancellationToken)
         {
@@ -73,6 +77,7 @@ namespace OrderService.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Policy = Policies.USER)]
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequestDto dto, CancellationToken cancellationToken = default)
         {
@@ -85,6 +90,7 @@ namespace OrderService.API.Controllers
             return Created();
         }
 
+        [Authorize(Policy = Policies.USER)]
         [HttpPost("basket")]
         public async Task<IActionResult> CreateOrderByBasket(CancellationToken cancellationToken = default)
         {

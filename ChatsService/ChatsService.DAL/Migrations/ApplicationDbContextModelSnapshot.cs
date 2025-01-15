@@ -35,6 +35,9 @@ namespace ChatsService.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
@@ -65,7 +68,7 @@ namespace ChatsService.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsReaded")
+                    b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
                     b.Property<Guid>("SenderId")
@@ -74,6 +77,9 @@ namespace ChatsService.DAL.Migrations
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 

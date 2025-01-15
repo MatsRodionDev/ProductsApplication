@@ -21,7 +21,7 @@ namespace ProductsService.Infrastructure.DI
                 busConfigurator.AddConsumer<ProductDeletedEventConsumer>();
                 busConfigurator.AddConsumer<ProductUpdatedEventConsumer>();
 
-                busConfigurator.SetKebabCaseEndpointNameFormatter();
+                busConfigurator.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("product-service", false));
 
                 busConfigurator.UsingRabbitMq((context, configurator) =>
                 {

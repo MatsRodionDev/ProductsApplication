@@ -38,7 +38,7 @@ namespace ProductsService.API.Controllers
             return Ok(product);
         }
 
-        [Authorize]
+        [Authorize (Policy = Policies.USER)]
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] CreateProductRequestDto dto, CancellationToken cancellationToken)
         {
@@ -77,7 +77,7 @@ namespace ProductsService.API.Controllers
             return NoContent();
         }
 
-        [Authorize]
+        [Authorize(Policy = Policies.USER)]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
@@ -90,7 +90,7 @@ namespace ProductsService.API.Controllers
             return NoContent();
         }
 
-        [Authorize]
+        [Authorize(Policy = Policies.USER)]
         [HttpPatch("{id}/images")]
         public async Task<IActionResult> CreateImageToProduct(Guid id, [FromForm] CreateImageToProductRequestDto dto, CancellationToken cancellationToken)
         {
@@ -106,7 +106,7 @@ namespace ProductsService.API.Controllers
             return Created();
         }
 
-        [Authorize]
+        [Authorize(Policy = Policies.USER)]
         [HttpDelete("{productId}/images/{imageId}")]
         public async Task<IActionResult> DeleteImageToProduct(Guid productId, Guid imageId, CancellationToken cancellationToken)
         {
@@ -119,7 +119,7 @@ namespace ProductsService.API.Controllers
             return NoContent();
         }
 
-        [Authorize]
+        [Authorize(Policy = Policies.USER)]
         [HttpPatch("{id}/categories")]
         public async Task<IActionResult> CreateCategoryToProduct(Guid id, [FromBody] CreateCategoryToProductRequestDto dto, CancellationToken cancellationToken)
         {
@@ -135,7 +135,7 @@ namespace ProductsService.API.Controllers
             return Created();
         }
 
-        [Authorize]
+        [Authorize(Policy = Policies.USER)]
         [HttpDelete("{productId}/categories/{categoryId}")]
         public async Task<IActionResult> DeleteCategoryToProduct(Guid productId, Guid categoryId, CancellationToken cancellationToken)
         {

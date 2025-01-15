@@ -15,6 +15,8 @@ builder.Services.AddApplicationLayer();
 
 var app = builder.Build();
 
+Console.WriteLine("Gbcz");
+
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -24,8 +26,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.useApplyMigrations();
 }
-
-app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

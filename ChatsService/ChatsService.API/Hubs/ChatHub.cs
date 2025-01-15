@@ -6,7 +6,7 @@ using Shared.Consts;
 
 namespace ChatsService.API.Hubs
 {
-    [Authorize]
+    [Authorize(Policy = Policies.USER)]
     public class ChatHub(
         IChatService chatService,
         ICacheService cacheService) : Hub<IChatHub>

@@ -1,8 +1,10 @@
-﻿using ChatsService.API.Filters;
+﻿using ChatsService.API.Authorization;
+using ChatsService.API.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Consts;
+using Shared.Enums;
 using System.Text;
 
 namespace ChatsService.API.DI
@@ -40,6 +42,24 @@ namespace ChatsService.API.DI
                         }
                     };
                 });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Policies.ADMIN, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin));
+                });
+
+                options.AddPolicy(Policies.WORKER, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin, RoleEnum.Worker));
+                });
+
+                options.AddPolicy(Policies.USER, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin, RoleEnum.Worker, RoleEnum.User));
+                });
+            });
         }
     }
 }

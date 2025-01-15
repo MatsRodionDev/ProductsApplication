@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OprderService.Infrastructure.MessageBroker;
+using OrderService.API.Authorization;
 using Shared.Consts;
+using Shared.Enums;
 using System.Text;
 
 namespace OrderService.API.DependencyInjection
@@ -45,6 +48,26 @@ namespace OrderService.API.DependencyInjection
                         }
                     };
                 });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Policies.ADMIN, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin));
+                });
+
+                options.AddPolicy(Policies.WORKER, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin, RoleEnum.Worker));
+                });
+
+                options.AddPolicy(Policies.USER, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin, RoleEnum.Worker, RoleEnum.User));
+                });
+            });
+
+            services.AddSingleton<IAuthorizationHandler, RoleRequirmentHandler>();
         }
     }
 }
