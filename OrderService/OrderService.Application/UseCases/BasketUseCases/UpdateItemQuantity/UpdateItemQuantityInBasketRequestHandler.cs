@@ -14,7 +14,7 @@ namespace OrderService.Application.UseCases.BasketUseCases.RemoveItem
             var basket = await unitOfWork.BasketRepository.GetByUserIdWithTrackingAsync(request.UserId, cancellationToken)
                 ?? throw new NotFoundException("There is no basket with this userId.");
 
-            var product = productService.GetByIdAsync(request.ProductId)
+            var product = await productService.GetByIdAsync(request.ProductId, cancellationToken)
                 ?? throw new NotFoundException("There is no product with this ID.");
 
             var item = basket.BasketItems.Find(i => i.ProductId == request.ProductId)

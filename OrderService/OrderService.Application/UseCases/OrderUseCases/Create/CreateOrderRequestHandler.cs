@@ -18,36 +18,36 @@ namespace OrderService.Application.UseCases.OrderUseCases.Create
         {
             var dto = mapper.Map<TakeProductDto>(request);
 
-            var product = productService.TakeProduct(dto);
+            var product = await productService.TakeProduct(dto, cancellationToken);
 
             var orderId = Guid.NewGuid();
-            var totalPrice = CalculateTotalPrice(product.Price, product.Quantity);
+            var totalPrice = CalculateTotalPrice(product.Price, product.TakedQuantity);
             var order = CreateOrder(orderId, request.UserId, product, totalPrice);
 
             await unitOfWork.OrderRepository.CreateAsync(order, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        private decimal CalculateTotalPrice(decimal price, int quantity)
+        private decimal CalculateTotalPrice(decimal price, int takedQuantity)
         {
-            return price * quantity;
+            return price * takedQuantity;
         }
 
-        private Order CreateOrder(Guid orderId, Guid buyerId, Product product, decimal totalPrice)
+        private Order CreateOrder(Guid orderId, Guid buyerId, TakedProduct product, decimal totalPrice)
         {
             return new Order
             {
                 Id = orderId,
                 BuyerId = buyerId,
                 SellerId = product.UserId,
-                Quantity = product.Quantity,
+                Quantity = product.TakedQuantity,
                 ToTalPrice = totalPrice,
                 Status = OrderStatus.Processing.ToString(),
                 OrderItem = CreateOrderItem(orderId, product)
             };
         }
 
-        private OrderItem CreateOrderItem(Guid orderId, Product product)
+        private OrderItem CreateOrderItem(Guid orderId, TakedProduct product)
         {
             return new OrderItem
             {

@@ -8,6 +8,6 @@ namespace OrderService.Application.Common.Dtos
         decimal UnitPrice,
         decimal ToTalPrice,
         string Name,
-        string Description,
-        int AvailableQuantity);
+        int AvailableQuantity,
+        List<Image> Images);
 }

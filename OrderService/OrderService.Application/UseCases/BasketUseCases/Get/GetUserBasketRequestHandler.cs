@@ -3,6 +3,7 @@ using OrderService.Application.Common.Dtos;
 using OrderService.Application.Common.Intefaces;
 using OrderService.Domain.Exceptions;
 using OrderService.Domain.Interfaces;
+using System.Threading;
 
 namespace OrderService.Application.UseCases.BasketUseCases.Get
 {
@@ -15,25 +16,30 @@ namespace OrderService.Application.UseCases.BasketUseCases.Get
             var basket = await unitOfWork.BasketRepository.GetByUserIdAsync(request.UserId, cancellationToken)
                 ?? throw new NotFoundException("There is no basket with this id");
 
+            var basketItemDtos = await Task.WhenAll(
+                basket.BasketItems.Select(item =>
+                    GetBasketItemResponseDto(item.ProductId, item.Quantity, cancellationToken)));
+
             return new BasketResponseDto(
                 basket.UserId,
-                basket.BasketItems
-                    .Select(item =>
-                        GetBasketItemResponseDto(item.ProductId, item.Quantity))
-                    .Where(dto => dto != null)
-                    .ToList());
+                basketItemDtos.Where(i => i != null).ToList());     
         }
 
-        private BasketItemResponseDto? GetBasketItemResponseDto(Guid productId, int quantity)
+        private decimal CalculateTotalPrice(decimal price, int takedQuantity)
         {
-            var product = productService.GetByIdAsync(productId);
+            return price * takedQuantity;
+        }
 
-            if (product is null)
+        private async Task<BasketItemResponseDto?> GetBasketItemResponseDto(Guid productId, int quantity, CancellationToken cancellationToken = default)
+        {
+            var product = await productService.GetByIdAsync(productId, cancellationToken);
+
+            if (product == null)
             {
                 return null;
             }
 
-            var totalPrice = product.Price * quantity;
+            var totalPrice = CalculateTotalPrice(product.Price, quantity);
 
             return new BasketItemResponseDto(
                 product.Id,
@@ -41,8 +47,9 @@ namespace OrderService.Application.UseCases.BasketUseCases.Get
                 product.Price,
                 totalPrice,
                 product.Name,
-                product.Description,
-                product.Quantity);
+                product.Quantity,
+                product.Images
+            );
         }
     }
 }
