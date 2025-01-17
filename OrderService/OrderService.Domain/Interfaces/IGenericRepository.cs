@@ -10,5 +10,6 @@ namespace OrderService.Domain.Interfaces
         Task CreateAsync(T entity, CancellationToken cancellationToken = default);
         void Update(T entity);
         void Delete(T entity);
+        void DeleteRange(List<T> entities);
     }
 }
