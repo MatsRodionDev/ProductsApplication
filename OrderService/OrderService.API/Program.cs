@@ -1,11 +1,9 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using OrderService.API.DependencyInjection;
+using OrderService.API.Extensions;
 using OrderService.API.Middlewares;
 using OrderService.Application.Common.DI;
 using OrderService.Infrastructure.DI;
 using OrderService.Persistence.DI;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +22,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.useApplyMigrations();
 }
 
 app.UseHttpsRedirection();

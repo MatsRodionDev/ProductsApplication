@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using ProductsService.Application.Common.Contracts;
+using Shared.Contracts;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Infrastructure.Interfaces;
 

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
+using Shared.Consts;
 using System.Text;
 
 namespace ChatsService.API.DI
@@ -33,7 +34,7 @@ namespace ChatsService.API.DI
                     {
                         OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies["access"];
+                            context.Token = context.Request.Cookies[CookiesConstants.ACCESS];
 
                             return Task.CompletedTask;
                         }

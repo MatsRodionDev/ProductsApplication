@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using OprderService.Infrastructure.MessageBroker;
+using Shared.Consts;
 using System.Text;
 
 namespace OrderService.API.DependencyInjection
@@ -8,6 +11,11 @@ namespace OrderService.API.DependencyInjection
     {
         public static void AddPresentationLayer(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<MessageBrokerSettings>(
+                configuration.GetSection(nameof(MessageBrokerSettings)));
+            services.AddSingleton(sp =>
+                sp.GetRequiredService<IOptions<MessageBrokerSettings>>().Value);
+
             services.AddControllers();
 
             services.AddEndpointsApiExplorer();
@@ -31,7 +39,7 @@ namespace OrderService.API.DependencyInjection
                     {
                         OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies["access"];
+                            context.Token = context.Request.Cookies[CookiesConstants.ACCESS];
 
                             return Task.CompletedTask;
                         }

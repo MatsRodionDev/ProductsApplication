@@ -8,7 +8,6 @@ using UserService.DAL.DI;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddPresentationLayer(builder.Configuration);
 builder.Services.RegisterDataAccesLayerDapendencies(builder.Configuration);
 builder.Services.RegisteBusinessLogicLayerDapendencies(builder.Configuration);
@@ -24,6 +23,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseApplyMigrations();
     app.AddJobs(builder.Configuration);
 }
 

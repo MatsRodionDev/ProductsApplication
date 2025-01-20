@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserService.BLL", "UserServ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserService.DAL", "UserService.DAL\UserService.DAL.csproj", "{74DB40F3-3FEE-40C4-89C5-8071B3B6ED79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{F759083D-CC79-4DA9-985D-3D10E51101A2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "..\Shared\Shared.csproj", "{FF3673C6-1F65-4C61-81EC-67740E94E6E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{74DB40F3-3FEE-40C4-89C5-8071B3B6ED79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74DB40F3-3FEE-40C4-89C5-8071B3B6ED79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74DB40F3-3FEE-40C4-89C5-8071B3B6ED79}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F759083D-CC79-4DA9-985D-3D10E51101A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F759083D-CC79-4DA9-985D-3D10E51101A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F759083D-CC79-4DA9-985D-3D10E51101A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F759083D-CC79-4DA9-985D-3D10E51101A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF3673C6-1F65-4C61-81EC-67740E94E6E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF3673C6-1F65-4C61-81EC-67740E94E6E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF3673C6-1F65-4C61-81EC-67740E94E6E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF3673C6-1F65-4C61-81EC-67740E94E6E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

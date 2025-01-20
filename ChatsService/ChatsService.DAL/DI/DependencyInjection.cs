@@ -1,4 +1,5 @@
-﻿using ChatsService.DAL.Interfaces;
+﻿using ChatsService.DAL.Interceptors;
+using ChatsService.DAL.Interfaces;
 using ChatsService.DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +12,8 @@ namespace ChatsService.DAL.DI
         public static void AddDataAccessLayer(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options
-                => options.UseSqlServer(configuration.GetConnectionString(nameof(ApplicationDbContext))));
+                => options.UseSqlServer(configuration.GetConnectionString(nameof(ApplicationDbContext)))
+                    .AddInterceptors(new UpdateAuditableInterceptor()));
 
             services
                 .AddScoped<IChatRepository, ChatRepository>()

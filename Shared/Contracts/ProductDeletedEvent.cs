@@ -1,4 +1,4 @@
-﻿namespace ProductsService.Application.Common.Contracts
+﻿namespace Shared.Contracts
 {
     public record ProductDeletedEvent(Guid ProductId);
 }

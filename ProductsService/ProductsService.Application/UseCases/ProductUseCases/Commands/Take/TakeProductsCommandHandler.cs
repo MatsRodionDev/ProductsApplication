@@ -1,5 +1,5 @@
 ﻿using ProductsService.Application.Common.Abstractions;
-using ProductsService.Application.Common.Contracts;
+using Shared.Contracts;
 using ProductsService.Application.Common.Dto.Responses;
 using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
@@ -69,7 +69,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Take
         {
             var publishTasks = products
                 .Select(p => eventBus.PublishAsync(
-                    new ProductUpdatedEvent(p.Id),
+                    new ProductUpdatedEvent(p.Id, p.Quantity),
                     cancellationToken));
 
             await Task.WhenAll(publishTasks);

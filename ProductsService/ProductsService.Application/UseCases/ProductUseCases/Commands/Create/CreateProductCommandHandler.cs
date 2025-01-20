@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using ProductsService.Application.Common.Abstractions;
-using ProductsService.Application.Common.Contracts;
+using Shared.Contracts;
 using ProductsService.Application.Common.Interfaces;
 using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Interfaces;

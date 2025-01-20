@@ -2,6 +2,7 @@
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Shared.Consts;
 using Shared.Enums;
@@ -11,6 +12,7 @@ using UserService.API.Dtos.Requests;
 using UserService.API.Filters;
 using UserService.API.Profiles;
 using UserService.BLL.Common;
+using UserService.BLL.Common.MessageBroker;
 
 namespace UserService.API.DependencyInjection
 {
@@ -20,6 +22,10 @@ namespace UserService.API.DependencyInjection
         {
             services.Configure<JwtOptions>(configuration.GetSection(nameof(JwtOptions)));
             services.Configure<EmailOptions>(configuration.GetSection(nameof(EmailOptions)));
+
+            services.Configure<MessageBrokerSettings>(configuration.GetSection(nameof(MessageBrokerSettings)));
+            services.AddSingleton(sp =>
+                sp.GetRequiredService<IOptions<MessageBrokerSettings>>().Value);
 
             services.AddControllers(options => options.Filters
                 .Add(typeof(ValidationFilter)));

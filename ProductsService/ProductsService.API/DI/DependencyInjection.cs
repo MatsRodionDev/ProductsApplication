@@ -6,6 +6,7 @@ using ProductsService.API.Profiles;
 using ProductsService.Infrastructure.MessageBroker;
 using ProductsService.Infrastructure.Services;
 using ProductsService.Persistence.Settings;
+using Shared.Consts;
 using System.Text;
 
 namespace ProductsService.API.DI
@@ -37,7 +38,7 @@ namespace ProductsService.API.DI
                     {
                         OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies["access"];
+                            context.Token = context.Request.Cookies[CookiesConstants.ACCESS];
 
                             return Task.CompletedTask;
                         }

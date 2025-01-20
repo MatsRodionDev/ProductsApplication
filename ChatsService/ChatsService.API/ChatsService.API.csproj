@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Shared.csproj" />
     <ProjectReference Include="..\ChatsService.BLL\ChatsService.BLL.csproj" />
     <ProjectReference Include="..\ChatsService.DAL\ChatsService.DAL.csproj" />
   </ItemGroup>

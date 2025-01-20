@@ -39,7 +39,7 @@ namespace UserService.DAL.Repositories
             return await _dbSet
                 .AsNoTracking()
                 .Where(u => u.IsActivated == false)
-                .Where(u => u.CreatedAt.AddMinutes(1) <= DateTime.UtcNow)
+                .Where(u => u.CreatedAt.AddHours(1) <= DateTime.UtcNow)
                 .OrderBy(u => u.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)

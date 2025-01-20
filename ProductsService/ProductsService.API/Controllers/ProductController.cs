@@ -11,6 +11,7 @@ using ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteImage;
 using ProductsService.Application.UseCases.ProductUseCases.Commands.Update;
 using ProductsService.Application.UseCases.ProductUseCases.Queries.GetByFilters;
 using ProductsService.Application.UseCases.ProductUseCases.Queries.GetById;
+using Shared.Consts;
 
 namespace ProductsService.API.Controllers
 {
@@ -41,7 +42,7 @@ namespace ProductsService.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromForm] CreateProductRequestDto dto, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var command = new CreateProductCommand(
                 dto.Name,
@@ -61,7 +62,7 @@ namespace ProductsService.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequestDto dto, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var command = new UpdateProductCommand(
                 id,
@@ -80,7 +81,7 @@ namespace ProductsService.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var command = new DeleteProductCommand(id, userId);
 
@@ -93,7 +94,7 @@ namespace ProductsService.API.Controllers
         [HttpPatch("{id}/images")]
         public async Task<IActionResult> CreateImageToProduct(Guid id, [FromForm] CreateImageToProductRequestDto dto, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var command = new CreateImageToProductCommand(
                 id,
@@ -109,7 +110,7 @@ namespace ProductsService.API.Controllers
         [HttpDelete("{productId}/images/{imageId}")]
         public async Task<IActionResult> DeleteImageToProduct(Guid productId, Guid imageId, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var command = new DeleteImageToProductCommand(productId, imageId, userId);
 
@@ -122,7 +123,7 @@ namespace ProductsService.API.Controllers
         [HttpPatch("{id}/categories")]
         public async Task<IActionResult> CreateCategoryToProduct(Guid id, [FromBody] CreateCategoryToProductRequestDto dto, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var command = new CreateCategoryToProductCommand(
                 id,
@@ -138,7 +139,7 @@ namespace ProductsService.API.Controllers
         [HttpDelete("{productId}/categories/{categoryId}")]
         public async Task<IActionResult> DeleteCategoryToProduct(Guid productId, Guid categoryId, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst("userId")!.Value);
+            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
 
             var command = new DeleteCategoryToProductCommand(productId, categoryId, userId);
 

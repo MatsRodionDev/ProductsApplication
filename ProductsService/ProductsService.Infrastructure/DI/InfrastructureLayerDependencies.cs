@@ -15,7 +15,6 @@ namespace ProductsService.Infrastructure.DI
     {
         public static void AddInfrastructureLayer(this IServiceCollection services, IConfiguration configuration)
         {
-
             services.AddMassTransit(busConfigurator =>
             {
                 busConfigurator.AddConsumer<ProductCreatedEventConsumer>();

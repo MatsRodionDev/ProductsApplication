@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrderService.Application", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrderService.Infrastructure", "OrderService.Infrastructure\OrderService.Infrastructure.csproj", "{04A408FB-AB16-4A65-AC3E-481E308442FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "..\Shared\Shared.csproj", "{C6428F3A-3A91-45FA-BE3F-8C28EB36ADC9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{04A408FB-AB16-4A65-AC3E-481E308442FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04A408FB-AB16-4A65-AC3E-481E308442FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04A408FB-AB16-4A65-AC3E-481E308442FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6428F3A-3A91-45FA-BE3F-8C28EB36ADC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6428F3A-3A91-45FA-BE3F-8C28EB36ADC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6428F3A-3A91-45FA-BE3F-8C28EB36ADC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6428F3A-3A91-45FA-BE3F-8C28EB36ADC9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

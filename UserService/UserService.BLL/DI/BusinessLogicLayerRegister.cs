@@ -1,10 +1,12 @@
 ﻿using Hangfire;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using UserService.BLL.Common.Hashers;
+using UserService.BLL.Common.MessageBroker;
 using UserService.BLL.Interfaces.Hashers;
 using UserService.BLL.Interfaces.Jobs;
+using UserService.BLL.Interfaces.MessageBroker;
 using UserService.BLL.Interfaces.Services;
 using UserService.BLL.Jobs;
 using UserService.BLL.Profiles;
@@ -33,6 +35,25 @@ namespace UserService.BLL.DI
             });
             services.AddHangfireServer();
 
+            services.AddMassTransit(busConfigurator =>
+            {
+                busConfigurator.SetKebabCaseEndpointNameFormatter();
+
+                busConfigurator.UsingRabbitMq((context, configurator) =>
+                {
+                    MessageBrokerSettings settings = context.GetRequiredService<MessageBrokerSettings>();
+
+                    configurator.Host(settings.Host, h =>
+                    {
+                        h.Username(settings.Username);
+                        h.Password(settings.Password);
+
+                    });
+
+                    configurator.ConfigureEndpoints(context);
+                });
+            });
+
             services.AddScoped<IUsersService, UsersService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ICacheService, CacheService>();
@@ -42,6 +63,7 @@ namespace UserService.BLL.DI
 
             services.AddScoped<IPasswordHasher, PasswordHasher>();
 
+            services.AddTransient<IEventBus, EventBus>();
             services.AddTransient<IUserJobsService, UserJobsService>();
 
             services.AddAutoMapper(typeof(UserProfile));

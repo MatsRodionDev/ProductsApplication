@@ -1,5 +1,6 @@
 ﻿using Hangfire;
 using UserService.BLL.Interfaces.Jobs;
+using UserService.DAL.Interfaces;
 
 namespace UserService.API.Extensions
 {
@@ -14,6 +15,14 @@ namespace UserService.API.Extensions
                     nameof(IUserJobsService.ClearNotActivatedAccountsAsync),
                     job => job.ClearNotActivatedAccountsAsync(),
                     configuration[$"Jobs:Recurring:ClearAccounts"]);
+        }
+
+        public static void UseApplyMigrations(this IApplicationBuilder app)
+        {
+            var scope = app.ApplicationServices.CreateScope();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+            unitOfWork.DatabaseMigrate();
         }
     }
 }

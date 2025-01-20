@@ -1,5 +1,5 @@
 ﻿using ProductsService.Application.Common.Abstractions;
-using ProductsService.Application.Common.Contracts;
+using Shared.Contracts;
 using ProductsService.Application.Common.Interfaces;
 using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Exceptions;
@@ -40,7 +40,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteIm
             await fileService.RemoveFileAsync(image.ImageName, cancellationToken);
 
             await eventBus.PublishAsync(
-                new ProductUpdatedEvent(product.Id), 
+                new ProductUpdatedEvent(product.Id, product.Quantity), 
                 cancellationToken);
         }
     }

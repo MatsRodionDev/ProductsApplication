@@ -1,5 +1,5 @@
 ﻿using ProductsService.Application.Common.Abstractions;
-using ProductsService.Application.Common.Contracts;
+using Shared.Contracts;
 using ProductsService.Application.Common.Dto.Responses;
 using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
@@ -29,7 +29,9 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.TakeOne
 
             await commandRepository.UpdateAsync(product);
 
-            await eventBus.PublishAsync(new ProductUpdatedEvent(product.Id), cancellationToken);
+            await eventBus.PublishAsync(
+                new ProductUpdatedEvent(product.Id, product.Quantity), 
+                cancellationToken);
 
             return new TakedProductResponseDto(
                 product.Id,
