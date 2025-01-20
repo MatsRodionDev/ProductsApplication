@@ -12,10 +12,7 @@ namespace OrderService.Infrastructure.MessageBroker.Consumers
             var items = await unitOfWork.BasketItemRepository
                 .GetByProductIdAsync(context.Message.ProductId);
 
-            foreach (var item in items)
-            {
-                unitOfWork.BasketItemRepository.Delete(item);
-            }
+            unitOfWork.BasketItemRepository.DeleteRange(items);
 
             await unitOfWork.SaveChangesAsync();
         }

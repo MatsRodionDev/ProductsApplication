@@ -26,6 +26,11 @@ namespace OrderService.Persistence.Repositories
             _dbSet.Remove(entity);
         }
 
+        public virtual void DeleteRange(List<T> entities)
+        {
+            _dbSet.RemoveRange(entities);
+        }
+
         public virtual async Task<List<T>> GetAllAsync(CancellationToken cancellationToken)
         {
             return await _dbSet
