@@ -64,8 +64,8 @@ namespace UserService.API.Controllers
             return NoContent();
         }
 
-        [Authorize]
-        [HttpPost("logout")]
+        [Authorize(Policy = Policies.USER)]
+        [HttpPatch("logout")]
         public async Task<IActionResult> LogOut(CancellationToken cancellationToken)
         {
             var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);

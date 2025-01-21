@@ -46,7 +46,7 @@ namespace ProductsService.Infrastructure.Services
 
         public string GetFileUrl(string fileName)
         {
-            return $"http://{_minioOptions.Endpoint}/{_minioOptions.BucketName}/{fileName}";
+            return $"http://{_minioOptions.ImageUrl}/{_minioOptions.BucketName}/{fileName}";
         }
 
         private async Task<bool> BucketExistsAsync()

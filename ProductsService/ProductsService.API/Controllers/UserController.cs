@@ -14,7 +14,7 @@ namespace ProductsService.API.Controllers
         {
             var query = new GetProductsByUserIdQuery(
                 id,
-                dto.Category.ToString(),
+                dto.Category?.ToString(),
                 dto.Name,
                 dto.OrderBy,
                 dto.Asc,

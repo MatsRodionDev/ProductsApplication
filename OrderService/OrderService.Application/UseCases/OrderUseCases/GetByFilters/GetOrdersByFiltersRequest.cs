@@ -5,8 +5,8 @@ using OrderService.Domain.Enums;
 namespace OrderService.Application.UseCases.OrderUseCases.GetByFilters
 {
     public record GetOrdersByFiltersRequest(
-        Guid? OrderId,
+        string? ProductName,
         OrderStatus? OrderStatus,
-        int Page,
-        int PageSize) : IRequest<List<OrderResponseDto>>;
+        int Page = 1,
+        int PageSize = 5) : IRequest<List<OrderResponseDto>>;
 }

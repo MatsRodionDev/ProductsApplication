@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using ProductsService.API.Authorization;
 using ProductsService.API.Interceptors;
 using ProductsService.API.Profiles;
 using ProductsService.Infrastructure.MessageBroker;
 using ProductsService.Infrastructure.Services;
 using ProductsService.Persistence.Settings;
 using Shared.Consts;
+using Shared.Enums;
 using System.Text;
 
 namespace ProductsService.API.DI
@@ -44,6 +47,26 @@ namespace ProductsService.API.DI
                         }
                     };
                 });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(Policies.ADMIN, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin));
+                });
+
+                options.AddPolicy(Policies.WORKER, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin, RoleEnum.Worker));
+                });
+
+                options.AddPolicy(Policies.USER, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin, RoleEnum.Worker, RoleEnum.User));
+                });
+            });
+
+            services.AddSingleton<IAuthorizationHandler, RoleRequirmentHandler>();
 
             services.Configure<MessageBrokerSettings>(
                 configuration.GetSection(nameof(MessageBrokerSettings)));

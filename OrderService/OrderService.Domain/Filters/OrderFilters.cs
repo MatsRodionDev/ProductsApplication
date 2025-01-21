@@ -5,6 +5,6 @@ namespace OrderService.Domain.Filters
     public record OrderFilters(
         string? ProductName,
         OrderStatus? OrderStatus,
-        int Page,
-        int PageSize);
+        int Page = 1,
+        int PageSize = 5);
 }

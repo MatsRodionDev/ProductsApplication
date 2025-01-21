@@ -32,12 +32,12 @@ namespace OrderService.Infrastructure.DI
 
             services.AddMassTransit(busConfigurator =>
             {
-                busConfigurator.SetKebabCaseEndpointNameFormatter();
-
                 busConfigurator.AddConsumer<UserActivatedEventConsumer>();
 
                 busConfigurator.AddConsumer<ProductDeletedEventConsumer>();
                 busConfigurator.AddConsumer<ProductUpdatedEventConsumer>();
+
+                busConfigurator.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("order-service", false));
 
                 busConfigurator.UsingRabbitMq((context, configurator) =>
                 {

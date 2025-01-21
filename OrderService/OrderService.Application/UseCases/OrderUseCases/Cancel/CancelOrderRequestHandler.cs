@@ -13,9 +13,14 @@ namespace OrderService.Application.UseCases.OrderUseCases.Cancel
             var order = await unitOfWork.OrderRepository.GetByIdAsync(request.OrderId, cancellationToken)
                 ?? throw new NotFoundException("There is no order with this id");
 
-            if(order.SellerId != request.UserId || order.BuyerId != request.UserId)
+            if(order.SellerId != request.UserId && order.BuyerId != request.UserId)
             {
                 throw new UnauthorizedException("You cannot cncel this order");
+            }
+
+            if(order.Status == OrderStatus.Canceled.ToString() || order.Status == OrderStatus.Returned.ToString())
+            {
+                throw new BadRequestException("This order is already canceled");
             }
 
             order.Status = OrderStatus.Canceled.ToString();

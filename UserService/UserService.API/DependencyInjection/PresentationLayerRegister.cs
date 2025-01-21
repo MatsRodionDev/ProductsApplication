@@ -71,9 +71,14 @@ namespace UserService.API.DependencyInjection
                     policy.AddRequirements(new RoleRequirment(RoleEnum.Admin));
                 });
 
+                options.AddPolicy(Policies.WORKER, policy =>
+                {
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin, RoleEnum.Worker));
+                });
+
                 options.AddPolicy(Policies.USER, policy =>
                 {
-                    policy.AddRequirements(new RoleRequirment(RoleEnum.User));
+                    policy.AddRequirements(new RoleRequirment(RoleEnum.Admin, RoleEnum.Worker, RoleEnum.User));
                 });
             });
 

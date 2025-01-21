@@ -23,7 +23,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetById
 
             foreach (var image in product.Images)
             {
-                image.ImageUrl = fileService.GetFileUrl(image.ImageUrl);
+                image.ImageUrl = fileService.GetFileUrl(image.ImageName);
             }
 
             return mapper.Map<ProductResponseDto>(product);

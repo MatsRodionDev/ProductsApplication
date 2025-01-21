@@ -9,7 +9,7 @@ namespace OrderService.Persistence.Specifications
             int Quantity)
         {
             AddCriteria(i => i.ProductId == productId);
-            AddCriteria(i => i.Quantity < Quantity);
+            AddCriteria(i => i.Quantity > Quantity);
         }
     }
 }

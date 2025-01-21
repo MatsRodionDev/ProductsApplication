@@ -4,21 +4,21 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER $APP_UID
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 5009
+EXPOSE 5010
 
 
 # Этот этап используется для сборки проекта службы
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["UserService.API/UserService.API.csproj", "UserService.API/"]
+COPY ["UserService/UserService.API/UserService.API.csproj", "UserService/UserService.API/"]
 COPY ["Shared/Shared.csproj", "Shared/"]
-COPY ["UserService.BLL/UserService.BLL.csproj", "UserService.BLL/"]
-COPY ["UserService.DAL/UserService.DAL.csproj", "UserService.DAL/"]
-RUN dotnet restore "./UserService.API/UserService.API.csproj"
+COPY ["UserService/UserService.BLL/UserService.BLL.csproj", "UserService/UserService.BLL/"]
+COPY ["UserService/UserService.DAL/UserService.DAL.csproj", "UserService/UserService.DAL/"]
+RUN dotnet restore "./UserService/UserService.API/UserService.API.csproj"
 COPY . .
-WORKDIR "/src/UserService.API"
+WORKDIR "/src/UserService/UserService.API"
 RUN dotnet build "./UserService.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап

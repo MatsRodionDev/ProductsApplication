@@ -2,7 +2,7 @@
 
 namespace OrderService.API.Extensions
 {
-    public static class MigrationExtensions
+    public static class ApplicationBuilderExtensions
     {
         public static void useApplyMigrations(this IApplicationBuilder app)
         {

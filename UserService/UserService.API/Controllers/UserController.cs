@@ -45,7 +45,7 @@ namespace UserService.API.Controllers
             return NoContent();
         }
 
-        [Authorize]
+        [Authorize(Policy = Policies.USER)]
         [HttpPatch("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest dto, CancellationToken cancellationToken)
         {
@@ -56,7 +56,7 @@ namespace UserService.API.Controllers
             return NoContent();
         }
 
-        [Authorize]
+        [Authorize(Policy = Policies.USER)]
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfileIdAsync(CancellationToken cancellationToken)
         {
