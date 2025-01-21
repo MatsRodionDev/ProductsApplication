@@ -43,6 +43,14 @@ services:
     container_name: minio
     image: minio/minio
 
+  elasticsearch:
+    container_name: elasticsearch
+    image: elasticsearch:8.17.0
+
+  kibana:
+    container_name: kibana
+    image: kibana:8.17.0
+
   userservice:
     image: ${DOCKER_REGISTRY-}userservice
     build:

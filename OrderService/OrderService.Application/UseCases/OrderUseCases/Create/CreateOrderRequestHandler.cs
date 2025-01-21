@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OrderService.Application.Common.Dtos;
 using OrderService.Application.Common.Intefaces;
 using OrderService.Application.Common.Models;
 using OrderService.Domain.Enums;
+using OrderService.Domain.Exceptions;
 using OrderService.Domain.Interfaces;
 using OrderService.Domain.Models;
 
@@ -12,13 +14,22 @@ namespace OrderService.Application.UseCases.OrderUseCases.Create
     internal sealed class CreateOrderRequestHandler(
         IProductService productService,
         IUnitOfWork unitOfWork,
-        IMapper mapper) : IRequestHandler<CreateOrderRequest>
+        IMapper mapper,
+        ILogger<CreateOrderRequestHandler> logger) : IRequestHandler<CreateOrderRequest>
     {
         public async Task Handle(CreateOrderRequest request, CancellationToken cancellationToken)
         {
+            logger.LogInformation("Started handling CreateOrderRequest for UserId: {UserId}", request.UserId);
+
             var dto = mapper.Map<TakeProductDto>(request);
 
             var product = await productService.TakeProduct(dto, cancellationToken);
+
+            if (product is null)
+            {
+                logger.LogWarning("Product with ProductId: {ProductId} could not be taken.", request.ProductId);
+                throw new NotFoundException("Product not found or insufficient quantity.");
+            }
 
             var orderId = Guid.NewGuid();
             var totalPrice = CalculateTotalPrice(product.Price, product.TakedQuantity);
@@ -26,6 +37,9 @@ namespace OrderService.Application.UseCases.OrderUseCases.Create
 
             await unitOfWork.OrderRepository.CreateAsync(order, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("Successfully created OrderId: {OrderId} for UserId: {UserId}, TotalPrice: {TotalPrice}",
+                orderId, request.UserId, totalPrice);
         }
 
         private decimal CalculateTotalPrice(decimal price, int takedQuantity)

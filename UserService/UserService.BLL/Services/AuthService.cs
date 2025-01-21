@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Hangfire;
+using Microsoft.Extensions.Logging;
 using Shared.Consts;
 using Shared.Contracts;
 using Shared.Enums;
@@ -25,20 +26,25 @@ namespace UserService.BLL.Services
         IPasswordHasher passwordHasher,
         IBackgroundJobClient backgroundJobClient,
         IEventBus eventBus,
-        IMapper mapper) : IAuthService
+        IMapper mapper,
+        ILogger<AuthService> logger) : IAuthService
     {
 
         public async Task ActivateAsync(Guid userId, int activatePass, CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("Activating user with ID: {UserId}", userId);
+
             var userEntity = await unitOfWork.UserRepository.GetByIdAsync(userId, cancellationToken);
 
             if (userEntity is null)
             {
+                logger.LogWarning("User with ID: {UserId} not found", userId);
                 throw new BadRequestException("User with such id does not exist");
             }
 
             if (userEntity.IsActivated)
             {
+                logger.LogWarning("User with ID: {UserId} is already activated", userId);
                 throw new BadRequestException("An account with this ID has already been activated.");
             }
 
@@ -53,10 +59,14 @@ namespace UserService.BLL.Services
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
             await eventBus.PublishAsync(new UserActivatedEvent(userEntity.Id));
+
+            logger.LogInformation("User with ID: {UserId} successfully activated", userId);
         }
 
         public async Task<TokenResponse> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("Attempting login for email: {Email}", email);
+
             var userEntity = await unitOfWork.UserRepository.GetByEmailAsync(email, cancellationToken);
 
             await ValidateUserAsync(userEntity, password, cancellationToken);
@@ -73,18 +83,26 @@ namespace UserService.BLL.Services
                 TimeSpan.FromDays(30),
                 cancellationToken);
 
+            logger.LogInformation("User with ID: {UserId} successfully logged in", user.Id);
+
             return new TokenResponse(accessToken, refreshToken);
         }
 
         public async Task LogoutAsync(Guid userId, CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("Logging out user with ID: {UserId}", userId);
+
             await cacheService.RemoveAsync(
                 CacheKeysProvider.GetRefreshKey(userId),
                 cancellationToken);
+
+            logger.LogInformation("User with ID: {UserId} successfully logged out", userId);
         }
 
         public async Task<TokenResponse> RefreshAsync(string? refreshToken, CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("Refreshing token");
+
             var userId = GetUserIdFromToken(refreshToken);
 
             await ValidateRefreshTokenAsync(userId, refreshToken!, cancellationToken);
@@ -93,6 +111,7 @@ namespace UserService.BLL.Services
 
             if (userEntity is null)
             {
+                logger.LogWarning("User with ID: {UserId} not found during token refresh", userId);
                 throw new UnauthorizedException();
             }
 
@@ -100,42 +119,54 @@ namespace UserService.BLL.Services
             var role = user.Role!.Name;
             var newAccessToken = jwtService.GenerateAccesToken(user, role);
 
+            logger.LogInformation("Token refreshed for user ID: {UserId}", userId);
+
             return new TokenResponse(newAccessToken, refreshToken!);
         }
 
         public async Task<Guid> GenerateNewActivateCodeAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var userEntity = await unitOfWork.UserRepository.GetByIdAsync(id, cancellationToken); 
+            logger.LogInformation("Generating new activation code for user with ID: {UserId}", id);
+
+            var userEntity = await unitOfWork.UserRepository.GetByIdAsync(id, cancellationToken);
 
             if (userEntity is null)
             {
+                logger.LogWarning("User with ID: {UserId} not found for activation code generation", id);
                 throw new NotFoundException("User with the specified ID does not exist.");
             }
 
             if (userEntity.IsActivated)
             {
+                logger.LogWarning("User with ID: {UserId} is already activated", id);
                 throw new BadRequestException("The account is already activated.");
             }
 
             await SendActivateCodeAsync(userEntity, cancellationToken);
+
+            logger.LogInformation("Activation code sent for user with ID: {UserId}", id);
 
             return userEntity.Id;
         }
 
         public async Task<Guid> RegisterAsync(User newUser, CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("Registering new user with email: {Email}", newUser.Email);
+
             var user = await unitOfWork.UserRepository
                 .GetByEmailAsync(newUser.Email, cancellationToken);
 
-            if(user is not null)
+            if (user is not null)
             {
-                throw new BadRequestException("User with such email already exist");
+                logger.LogWarning("User with email: {Email} already exists", newUser.Email);
+                throw new BadRequestException("User with such email already exists");
             }
 
             var role = await unitOfWork.RoleRepository.GetByNameAsync(RoleEnum.User.ToString(), cancellationToken);
 
             if (role is null)
-            {
+            {   
+                logger.LogError("No roles found on the server");
                 throw new Exception("There are no roles in the server");
             }
 
@@ -146,10 +177,11 @@ namespace UserService.BLL.Services
             var userEntity = mapper.Map<UserEntity>(newUser);
 
             await unitOfWork.UserRepository.CreateAsync(userEntity, cancellationToken);
-
             await unitOfWork.SaveChangesAsync();
 
             await SendActivateCodeAsync(userEntity, cancellationToken);
+
+            logger.LogInformation("User with ID: {UserId} successfully registered", userEntity.Id);
 
             return userEntity.Id;
         }
@@ -158,6 +190,7 @@ namespace UserService.BLL.Services
         {
             if (refreshToken is null)
             {
+                logger.LogWarning("Refresh token is null");
                 throw new UnauthorizedException();
             }
 
@@ -165,19 +198,23 @@ namespace UserService.BLL.Services
 
             if (claims is null)
             {
+                logger.LogWarning("Claims not found in refresh token");
                 throw new UnauthorizedException();
             }
 
-            if (!claims.TryGetValue(CustomClaims.USER_ID_CLAIM_KEY, out var id) && id is not Guid)
+            if (!claims.TryGetValue(CustomClaims.USER_ID_CLAIM_KEY, out var id) || id == null || !Guid.TryParse(id.ToString(), out var userId))
             {
+                logger.LogWarning("Invalid user ID in token claims");
                 throw new UnauthorizedException();
             }
 
-            return Guid.Parse(id.ToString()!);
+            return userId;
         }
 
         private async Task SendActivateCodeAsync(UserEntity userEntity, CancellationToken cancellationToken = default)
         {
+            logger.LogInformation("Sending activation code to user with ID: {UserId}, Email: {Email}", userEntity.Id, userEntity.Email);
+
             var activateCode = CodeProvider.GenerateSixDigitCode();
 
             await cacheService.SetAsync(
@@ -188,6 +225,8 @@ namespace UserService.BLL.Services
 
             backgroundJobClient.Enqueue<IUserJobsService>(
                 job => job.SendActivateCode(userEntity.Email, activateCode));
+
+            logger.LogInformation("Activation code sent to user with ID: {UserId}", userEntity.Id);
         }
 
         private async Task ValidateRefreshTokenAsync(Guid userId, string refreshToken, CancellationToken cancellationToken = default)
@@ -196,13 +235,15 @@ namespace UserService.BLL.Services
                 CacheKeysProvider.GetRefreshKey(userId),
                 cancellationToken);
 
-            if (token is null)  
+            if (token is null)
             {
+                logger.LogWarning("Refresh token not found for user with ID: {UserId}", userId);
                 throw new UnauthorizedException();
             }
 
             if (token != refreshToken)
             {
+                logger.LogWarning("Invalid refresh token for user with ID: {UserId}", userId);
                 throw new UnauthorizedException();
             }
         }
@@ -215,11 +256,13 @@ namespace UserService.BLL.Services
 
             if (code is 0)
             {
+                logger.LogWarning("Activation code expired or not found for user with ID: {UserId}", userId);
                 throw new BadRequestException("Activation code has expired or does not exist.");
             }
 
             if (code != activatePass)
             {
+                logger.LogWarning("Invalid activation code for user with ID: {UserId}", userId);
                 throw new BadRequestException("Incorrect code");
             }
         }
@@ -228,6 +271,7 @@ namespace UserService.BLL.Services
         {
             if (userEntity is null)
             {
+                logger.LogWarning("User not found during login validation");
                 throw new BadRequestException("Incorrect email or password");
             }
 
@@ -237,16 +281,19 @@ namespace UserService.BLL.Services
 
             if (token is not null)
             {
+                logger.LogWarning("User with ID: {UserId} is already logged in", userEntity.Id);
                 throw new UnauthorizedException("This account is already logged in");
             }
 
             if (!userEntity.IsActivated)
             {
+                logger.LogWarning("User with ID: {UserId} is not activated", userEntity.Id);
                 throw new BadRequestException("This account has not been activated");
             }
 
             if (!passwordHasher.Verify(password, userEntity.PasswordHash))
             {
+                logger.LogWarning("Incorrect password for user with ID: {UserId}", userEntity.Id);
                 throw new BadRequestException("Incorrect email or password");
             }
         }

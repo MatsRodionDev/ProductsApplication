@@ -5,6 +5,7 @@ using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Domain.Models;
+using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Threading;
 
@@ -12,14 +13,16 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Take
 {
     internal sealed class TakeProductsCommandHandler(
         IProductCommandRepository commandRepository,
-        IEventBus eventBus) : ICommandHandler<TakeProductsCommand, List<TakedProductResponseDto>>
+        IEventBus eventBus,
+        ILogger<TakeProductsCommandHandler> logger) : ICommandHandler<TakeProductsCommand, List<TakedProductResponseDto>>
     {
         public async Task<List<TakedProductResponseDto>> Handle(TakeProductsCommand request, CancellationToken cancellationToken)
         {
-            var errors = new StringBuilder();
+            logger.LogInformation("Handling TakeProductsCommand");
 
-            List<Product> products = [];
-            List<TakedProductResponseDto> takedProducts = [];
+            var errors = new StringBuilder();
+            List<Product> products = new List<Product>();
+            List<TakedProductResponseDto> takedProducts = new List<TakedProductResponseDto>();
 
             foreach (var productToTake in request.Products)
             {
@@ -27,30 +30,33 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Take
 
                 if (product is null)
                 {
-                    errors.Append($"Product with id {productToTake.Id} doesnt available");
+                    errors.Append($"Product with id {productToTake.Id} not available. ");
                     continue;
                 }
 
                 if (product.Quantity < productToTake.Quantity)
                 {
-                    errors.Append($"Product with id {productToTake.Id} doesnt available in this quantity");
+                    errors.Append($"Product with id {productToTake.Id} doesn't have enough quantity. ");
                     continue;
                 }
 
                 product.Quantity -= productToTake.Quantity;
-
                 products.Add(product);
-                takedProducts.Add(
-                    CreateTakedProductDto(product, productToTake.Quantity)); 
+
+                var takedProductDto = CreateTakedProductDto(product, productToTake.Quantity);
+                takedProducts.Add(takedProductDto);
             }
 
             if (errors.Length > 0)
             {
+                logger.LogError("Errors occurred: {Errors}", errors.ToString());
                 throw new BadRequestException(errors.ToString());
             }
 
             await commandRepository.UpdateManyAsync(products, cancellationToken);
             await PublishEventsAsync(products, cancellationToken);
+
+            logger.LogInformation("Successfully processed TakeProductsCommand with {Count} products", takedProducts.Count);
 
             return takedProducts;
         }
@@ -74,6 +80,5 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Take
 
             await Task.WhenAll(publishTasks);
         }
-
     }
 }

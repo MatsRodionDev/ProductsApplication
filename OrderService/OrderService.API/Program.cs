@@ -1,3 +1,4 @@
+using OrderService.API.Configuration;
 using OrderService.API.DependencyInjection;
 using OrderService.API.Extensions;
 using OrderService.API.Middlewares;
@@ -12,6 +13,8 @@ builder.Services.AddPresentationLayer(builder.Configuration);
 builder.Services.AddPersistenceLayer(builder.Configuration);
 builder.Services.AddInfrastructureLayer(builder.Configuration);
 builder.Services.AddApplicationLayer();
+
+builder.Host.UseLogging();
 
 var app = builder.Build();
 

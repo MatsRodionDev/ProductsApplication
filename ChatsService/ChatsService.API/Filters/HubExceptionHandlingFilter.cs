@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.SignalR;
 namespace ChatsService.API.Filters
 {
     public class HubExceptionHandlingFilter(
-        IHubContext<ChatHub> hubContext) : IHubFilter
+        IHubContext<ChatHub> hubContext,
+        ILogger<HubExceptionHandlingFilter> logger) : IHubFilter
     {
         public async ValueTask<object?> InvokeMethodAsync(
             HubInvocationContext invocationContext,
@@ -13,6 +14,7 @@ namespace ChatsService.API.Filters
         {
             try
             {
+                logger.LogInformation($"Processing ws request: {invocationContext.HubMethod.Name}");
                 return await next(invocationContext);
             }
             catch (Exception ex)
@@ -21,6 +23,8 @@ namespace ChatsService.API.Filters
                     .Clients
                     .Client(invocationContext.Context.ConnectionId)
                     .SendAsync("HandleError", ex.Message);
+
+                logger.LogError(ex, ex.Message);
 
                 throw new HubException(ex.Message);
             }

@@ -4,6 +4,7 @@ using ProductsService.Application.Common.DI;
 using ProductsService.API.Middlewares;
 using ProductsService.API.DI;
 using ProductsService.API.Services;
+using ProductsService.API.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +17,9 @@ builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-    
+
+builder.Host.UseLogging();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

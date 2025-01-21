@@ -1,4 +1,5 @@
 using Hangfire;
+using UserService.API.Configuration;
 using UserService.API.DependencyInjection;
 using UserService.API.Extensions;
 using UserService.API.Middlewares;
@@ -11,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPresentationLayer(builder.Configuration);
 builder.Services.RegisterDataAccesLayerDapendencies(builder.Configuration);
 builder.Services.RegisteBusinessLogicLayerDapendencies(builder.Configuration);
+
+builder.Host.UseLogging();
 
 var app = builder.Build();
 

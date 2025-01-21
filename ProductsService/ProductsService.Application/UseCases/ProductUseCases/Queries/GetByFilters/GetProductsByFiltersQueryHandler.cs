@@ -5,26 +5,34 @@ using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Filters;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Domain.Models;
+using Microsoft.Extensions.Logging;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Queries.GetByFilters
 {
     public class GetProductsByFiltersQueryHandler(
         IMapper mapper,
         IProductQueryRepository productRepository,
-        IFileService fileService) : IQueryHandler<GetProductsByFiltersQuery, List<ProductResponseDto>>
+        IFileService fileService,
+        ILogger<GetProductsByFiltersQueryHandler> logger) : IQueryHandler<GetProductsByFiltersQuery, List<ProductResponseDto>>
     {
         public async Task<List<ProductResponseDto>> Handle(GetProductsByFiltersQuery request, CancellationToken cancellationToken)
         {
+            logger.LogInformation("Handling GetProductsByFiltersQuery");
+
             var filters = mapper.Map<GetProductsFilters>(request);
 
             var products = await productRepository.GetByFiltersAsync(filters, cancellationToken);
 
-            products = GetProductsWithUsrls(products);
+            products = GetProductsWithUrls(products);
 
-            return mapper.Map<List<ProductResponseDto>>(products);
+            var response = mapper.Map<List<ProductResponseDto>>(products);
+
+            logger.LogInformation("Successfully retrieved {ProductCount} products", response.Count);
+
+            return response;
         }
 
-        private List<Product> GetProductsWithUsrls(List<Product> products)
+        private List<Product> GetProductsWithUrls(List<Product> products)
         {
             foreach (var product in products)
             {
