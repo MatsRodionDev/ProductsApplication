@@ -64,6 +64,9 @@ services:
       retries: 10
       start_period: 40s
     restart: always
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
   user.mssqldb:
     ports:
@@ -88,6 +91,9 @@ services:
       retries: 10
       start_period: 40s
     restart: always
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
   chat.mssqldb:
     ports:
@@ -112,6 +118,9 @@ services:
       retries: 10
       start_period: 40s
     restart: always
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
   product.read.mongodb:
     environment:
@@ -184,8 +193,47 @@ services:
       retries: 5
       start_period: 40s
 
+  elasticsearch:
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elk_data:/usr/share/elasticsearch/data/
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        reservations:
+          memory: 2g
+          cpus: "1.0"
+
+
+  kibana:
+    ports:
+      - "5601:5601"
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    networks:
+      - app-net
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
   productservice:
     environment:
+      - Elasticsearch__Uri=http://elasticsearch:9200
       - Kestrel__Endpoints__gRPC__Url=http://0.0.0.0:${PRODUCT_SERVICE_GRPC_PORT}
       - Kestrel__Endpoints__Https__Url=http://0.0.0.0:${PRODUCT_SERVICE_HTTPS_PORT}
       - Kestrel__Endpoints__Http__Url=http://0.0.0.0:${PRODUCT_SERVICE_HTTP_PORT}
@@ -195,9 +243,9 @@ services:
       - MinioOptions__SecretKey=MINIO_ROOT_PASSWORD
       - ConnectionStrings__Redis=redis:${REDIS_PORT}
       - JwtOptions__SecretKey=${JWT_SECRET_KEY}
-      - CommandMongoDbSettings__ConnectionString=mongodb://${PRODUCT_UPDATE_MONGO_USERNAME}:${PRODUCT_UPDATE_MONGO_PASSWORD}@product.update.mongodb:${PRODUCT_UPDATE_MONGO_PORT}
+      - CommandMongoDbSettings__ConnectionString=mongodb://${PRODUCT_UPDATE_MONGO_USERNAME}:${PRODUCT_UPDATE_MONGO_PASSWORD}@product.update.mongodb:27017
       - CommandMongoDbSettings__DatabaseName=Products
-      - QueryMongoDbSettings__ConnectionString=mongodb://${PRODUCT_READ_MONGO_USERNAME}:${PRODUCT_READ_MONGO_PASSWORD}@product.read.mongodb:${PRODUCT_READ_MONGO_PORT}
+      - QueryMongoDbSettings__ConnectionString=mongodb://${PRODUCT_READ_MONGO_USERNAME}:${PRODUCT_READ_MONGO_PASSWORD}@product.read.mongodb:27017
       - QueryMongoDbSettings__DatabaseName=Products
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=${PRODUCT_SERVICE_HTTP_PORT}
@@ -223,6 +271,8 @@ services:
       - app-net
       - mongo-net
     depends_on:
+      elasticsearch:
+        condition: service_healthy
       product.update.mongodb:
         condition: service_healthy
       product.read.mongodb:
@@ -234,6 +284,7 @@ services:
 
   orderservice:
     environment:
+      - Elasticsearch__Uri=http://elasticsearch:9200
       - Kestrel__Endpoints__Https__Url=http://0.0.0.0:${ORDER_SERVICE_HTTPS_PORT}
       - Kestrel__Endpoints__Http__Url=http://0.0.0.0:${ORDER_SERVICE_HTTP_PORT}
       - ConnectionStrings__ApplicationDbContext=Data Source=order.mssqldb;Database=OrdersApp;User ID=sa;Password=${ORDER_DB_PASSWORD};TrustServerCertificate=True
@@ -265,9 +316,12 @@ services:
         condition: service_healthy
       order.mssqldb:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
 
   userservice:
     environment:
+      - Elasticsearch__Uri=http://elasticsearch:9200
       - Kestrel__Endpoints__Https__Url=http://0.0.0.0:${USER_SERVICE_HTTPS_PORT}
       - Kestrel__Endpoints__Http__Url=http://0.0.0.0:${USER_SERVICE_HTTP_PORT}
       - ConnectionStrings__ApplicationDbContext=Data Source=user.mssqldb;Database=UsersApp;User ID=sa;Password=${USER_DB_PASSWORD};TrustServerCertificate=True
@@ -306,9 +360,12 @@ services:
         condition: service_healthy
       user.mssqldb:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
 
   chatservice:
     environment:
+      - Elasticsearch__Uri=http://elasticsearch:9200
       - Kestrel__Endpoints__Https__Url=http://0.0.0.0:${CHAT_SERVICE_HTTPS_PORT}
       - Kestrel__Endpoints__Http__Url=http://0.0.0.0:${CHAT_SERVICE_HTTP_PORT}
       - ConnectionStrings__Redis=redis:${REDIS_PORT}
@@ -336,6 +393,8 @@ services:
       redis:
         condition: service_healthy
       chat.mssqldb:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
 
   apigateway:
@@ -371,6 +430,8 @@ volumes:
   product_read_mongo_data:
   product_update_mongo_data:
   minio_data:
+  elk_data:
+  kibana_data:
 
 networks:
   rabbitmq-net:

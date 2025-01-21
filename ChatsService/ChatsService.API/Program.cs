@@ -4,6 +4,7 @@ using ChatsService.API.Hubs;
 using ChatsService.API.Hubs.Interfaces;
 using ChatsService.BLL.DI;
 using ChatsService.DAL.DI;
+using ChatService.API.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddPresentationLayer(builder.Configuration);
 builder.Services.AddBusinessLogicLayer(builder.Configuration);
 builder.Services.AddDataAccessLayer(builder.Configuration);
+
+builder.Host.UseLogging();
 
 var app = builder.Build();
 

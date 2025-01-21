@@ -5,61 +5,89 @@ using ChatsService.BLL.Models;
 using ChatsService.BLL.Dtos;
 using ChatsService.DAL.Entities;
 using ChatsService.DAL.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace ChatsService.BLL.Services
 {
     public class ChatService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IProductService productService) : IChatService
+        IProductService productService,
+        ILogger<ChatService> logger) : IChatService
     {
         public async Task<List<ChatResponseDto>> GetAllSellersChatsAsync(Guid sellerId, CancellationToken cancellationToken)
         {
+            logger.LogInformation("Fetching all chats for seller with ID {SellerId}", sellerId);
+
             var chats = await unitOfWork.ChatRepository.GetBySellerIdAsync(sellerId, cancellationToken);
 
-            var responses = new List<ChatResponseDto>();
-
-            foreach (var chat in chats)
+            if (chats is null)
             {
-                var response = CreateChatResponse(chat, sellerId);
-                responses.Add(response);
+                logger.LogWarning("No chats found for seller with ID {SellerId}", sellerId);
+                return new List<ChatResponseDto>();
             }
+
+            var responses = chats.Select(chat => CreateChatResponse(chat, sellerId)).ToList();
+
+            logger.LogInformation("Found {ChatCount} chats for seller with ID {SellerId}", responses.Count, sellerId);
 
             return responses;
         }
 
         public async Task<List<ChatResponseDto>> GetAllBuyersChatsAsync(Guid buyerId, CancellationToken cancellationToken)
         {
+            logger.LogInformation("Fetching all chats for buyer with ID {BuyerId}", buyerId);
+
             var chats = await unitOfWork.ChatRepository.GetByBuyerIdAsync(buyerId, cancellationToken);
 
-            var responses = new List<ChatResponseDto>();
-
-            foreach (var chat in chats)
+            if (chats is null)
             {
-                var response = CreateChatResponse(chat, buyerId);
-                responses.Add(response);
+                logger.LogWarning("No chats found for buyer with ID {BuyerId}", buyerId);
+                return new List<ChatResponseDto>();
             }
+
+            var responses = chats.Select(chat => CreateChatResponse(chat, buyerId)).ToList();
+
+            logger.LogInformation("Found {ChatCount} chats for buyer with ID {BuyerId}", responses.Count, buyerId);
 
             return responses;
         }
 
         public async Task<Chat> GetChatByIdAsync(Guid chatId, CancellationToken cancellationToken)
         {
-            var chat = await unitOfWork.ChatRepository.GetByIdAsync(chatId, cancellationToken)
-                ?? throw new NotFoundException("There is no chat with this id.");
+            logger.LogInformation("Fetching chat with ID {ChatId}", chatId);
+
+            var chat = await unitOfWork.ChatRepository.GetByIdAsync(chatId, cancellationToken);
+
+            if (chat is null)
+            {
+                logger.LogWarning("Chat with ID {ChatId} does not exist", chatId);
+                throw new NotFoundException("There is no chat with this id.");
+            }
+
+            logger.LogInformation("Chat with ID {ChatId} successfully retrieved", chatId);
 
             return mapper.Map<Chat>(chat);
         }
 
         public async Task<ChatResponseDto> CreateChatAsync(Guid productId, string buyerName, Guid buyerId, CancellationToken cancellationToken)
         {
+            logger.LogInformation("Creating chat for product {ProductId} with buyer {BuyerId}", productId, buyerId);
+
             var product = await productService.GetByIdAsync(productId);
 
-            var chat = await unitOfWork.ChatRepository
+            if (product is null)
+            {
+                logger.LogWarning("Product with ID {ProductId} does not exist", productId);
+                throw new NotFoundException("Product with this ID does not exist");
+            }
+
+            var existingChat = await unitOfWork.ChatRepository
                 .GetByProductAndBuyerIdsAsync(productId, buyerId, cancellationToken);
 
-            if (chat is not null)
+            if (existingChat is not null)
             {
+                logger.LogWarning("Chat for product {ProductId} with buyer {BuyerId} already exists", productId, buyerId);
                 throw new BadRequestException("You already have a chat with the seller for this product");
             }
 
@@ -75,16 +103,26 @@ namespace ChatsService.BLL.Services
             await unitOfWork.ChatRepository.CreateAsync(newChat, cancellationToken);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
+            logger.LogInformation("Chat created successfully with ID {ChatId}", newChat.Id);
+
             return mapper.Map<ChatResponseDto>(newChat);
         }
 
         public async Task<Message> SendMessageAsync(Guid senderId, string text, Guid chatId, CancellationToken cancellationToken)
         {
-            var chat = await unitOfWork.ChatRepository.GetByIdAsync(chatId, cancellationToken)
-                ?? throw new NotFoundException("There is no chat with this id."); 
+            logger.LogInformation("Sending message in chat {ChatId} by user {SenderId}", chatId, senderId);
 
-            if (chat.SellerId != senderId || chat.BuyerId != senderId)
+            var chat = await unitOfWork.ChatRepository.GetByIdAsync(chatId, cancellationToken);
+
+            if (chat is null)
             {
+                logger.LogWarning("Chat with ID {ChatId} does not exist", chatId);
+                throw new NotFoundException("There is no chat with this id.");
+            }
+
+            if (chat.SellerId != senderId && chat.BuyerId != senderId)
+            {
+                logger.LogWarning("Unauthorized attempt to send message in chat {ChatId} by user {SenderId}", chatId, senderId);
                 throw new UnauthorizedException("You cannot send messages in this chat");
             }
 
@@ -100,32 +138,44 @@ namespace ChatsService.BLL.Services
             unitOfWork.ChatRepository.Update(chat);
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
+            logger.LogInformation("Message sent successfully in chat {ChatId} by user {SenderId}", chatId, senderId);
+
             return mapper.Map<Message>(message);
         }
 
         public async Task MarkMessagesAsReadAsync(Guid userId, Guid chatId, CancellationToken cancellationToken)
         {
-            var chat = await unitOfWork.ChatRepository.GetByIdAsync(chatId, cancellationToken)
-                ?? throw new NotFoundException("There is no chat with this id.");
+            logger.LogInformation("Marking messages as read in chat {ChatId} by user {UserId}", chatId, userId);
 
-            if (chat.SellerId != userId || chat.BuyerId != userId)
+            var chat = await unitOfWork.ChatRepository.GetByIdAsync(chatId, cancellationToken);
+
+            if (chat is null)
             {
-                throw new UnauthorizedException("You cannot send messages in this chat");
+                logger.LogWarning("Chat with ID {ChatId} does not exist", chatId);
+                throw new NotFoundException("There is no chat with this id.");
+            }
+
+            if (chat.SellerId != userId && chat.BuyerId != userId)
+            {
+                logger.LogWarning("Unauthorized attempt to mark messages as read in chat {ChatId} by user {UserId}", chatId, userId);
+                throw new UnauthorizedException("You cannot mark messages as read in this chat");
             }
 
             ReadMessages(chat.Messages, userId);
-                 
+
             unitOfWork.ChatRepository.Update(chat);
             await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("Messages marked as read in chat {ChatId} by user {UserId}", chatId, userId);
         }
 
         private void ReadMessages(List<MessageEntity> messages, Guid userId)
         {
-            var unreadedMessages = messages
+            var unreadMessages = messages
                 .Where(m => m.SenderId != userId && !m.IsRead)
                 .ToList();
 
-            foreach(var message in unreadedMessages)
+            foreach (var message in unreadMessages)
             {
                 message.IsRead = true;
             }
@@ -135,13 +185,11 @@ namespace ChatsService.BLL.Services
         {
             var response = mapper.Map<ChatResponseDto>(chat);
             response.UnreadMessagesQuantity = chat.Messages
-                .Where(m => m.SenderId != userId)
-                .Where(m => m.IsRead == false)
-                .Count();
-            var messageEntity = chat.Messages
+                .Count(m => m.SenderId != userId && !m.IsRead);
+            var lastMessage = chat.Messages
                 .OrderByDescending(m => m.CreatedAt)
                 .FirstOrDefault();
-            response.LastMessage = mapper.Map<Message>(messageEntity);
+            response.LastMessage = mapper.Map<Message>(lastMessage);
 
             return response;
         }

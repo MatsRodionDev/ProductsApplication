@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OrderService.Application.Common.Dtos;
 using OrderService.Application.Common.Intefaces;
 using OrderService.Application.Common.Models;
@@ -13,15 +14,24 @@ namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
     internal sealed class CreateOrdersByBasketRequestHandler(
         IProductService productService,
         IUnitOfWork unitOfWork,
-        IMapper mapper) : IRequestHandler<CreateOrdersByBasketRequest>
+        IMapper mapper,
+        ILogger<CreateOrdersByBasketRequestHandler> logger) : IRequestHandler<CreateOrdersByBasketRequest>
     {
         public async Task Handle(CreateOrdersByBasketRequest request, CancellationToken cancellationToken)
         {
-            var basket = await unitOfWork.BasketRepository.GetByUserIdWithTrackingAsync(request.UserId, cancellationToken)
-                ?? throw new NotFoundException("There is no basket with such userId");
+            logger.LogInformation("Started handling CreateOrdersByBasketRequest for UserId: {UserId}", request.UserId);
+
+            var basket = await unitOfWork.BasketRepository.GetByUserIdWithTrackingAsync(request.UserId, cancellationToken);
+
+            if (basket is null)
+            {
+                logger.LogWarning("Basket not found for UserId: {UserId}", request.UserId);
+                throw new NotFoundException("There is no basket with such userId");
+            }
 
             if (!basket.BasketItems.Any())
             {
+                logger.LogWarning("Basket for UserId: {UserId} is empty.", request.UserId);
                 throw new BadRequestException("There are no items in the basket");
             }
 
@@ -29,14 +39,15 @@ namespace OrderService.Application.UseCases.OrderUseCases.CreateByBasket
 
             var takedProducts = await productService.TakeProducts(productsToTake, cancellationToken);
 
-            foreach(var product in takedProducts) 
+            foreach (var product in takedProducts)
             {
                 await CreateOrdersAsync(product, request.UserId, cancellationToken);
             }
 
             basket.BasketItems.Clear();
-
             await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("Successfully created orders from basket for UserId: {UserId}", request.UserId);
         }
 
         private async Task CreateOrdersAsync(TakedProduct product, Guid buyerId, CancellationToken cancellationToken = default)

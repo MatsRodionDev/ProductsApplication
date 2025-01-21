@@ -5,6 +5,7 @@ using ProductsService.Application.Common.Interfaces;
 using ProductsService.Application.Common.Interfaces.Services;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Domain.Models;
+using Microsoft.Extensions.Logging;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
 {
@@ -12,21 +13,23 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
         IFileService fileService,
         IProductCommandRepository productRepository,
         IMapper mapper,
-        IEventBus eventBus) : ICommandHandler<CreateProductCommand>
+        IEventBus eventBus,
+        ILogger<CreateProductCommandHandler> logger) : ICommandHandler<CreateProductCommand>
     {
         public async Task Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
+            logger.LogInformation("Start handling CreateProductCommand.");
+
             var product = mapper.Map<Product>(request);
 
-            if(request.ImageFiles is not null)
+            if (request.ImageFiles is not null)
             {
                 var imageTasks = request.ImageFiles
                     .Select(async file =>
-                        {
-                            var fileName = await fileService.UploadFileAsync(file, cancellationToken);
-
-                            return new Image { ImageName = fileName };
-                        });
+                    {
+                        var fileName = await fileService.UploadFileAsync(file, cancellationToken);
+                        return new Image { ImageName = fileName };
+                    });
 
                 var images = await Task.WhenAll(imageTasks);
                 product.Images = images.ToList();
@@ -36,6 +39,8 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
             await eventBus.PublishAsync(
                 new ProductCreatedEvent(product.Id),
                 cancellationToken);
+
+            logger.LogInformation("Finished handling CreateProductCommand for product ID: {ProductId}.", product.Id);
         }
     }
 }
