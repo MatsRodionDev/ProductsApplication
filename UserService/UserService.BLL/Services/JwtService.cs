@@ -65,7 +65,7 @@ namespace UserService.BLL.Services
             return tokenValue;
         }
 
-        public IDictionary<string, object>? GetClaimsFromToken(string token)
+        public IDictionary<string, string>? GetClaimsFromToken(string token)
         {
             var handler = new JwtSecurityTokenHandler();
 
@@ -75,7 +75,7 @@ namespace UserService.BLL.Services
             }
 
             var jwtToken = handler.ReadJwtToken(token);
-            var claims = jwtToken.Claims.ToDictionary(c => c.Type, c => (object)c.Value);
+            var claims = jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
 
             return claims;
         }

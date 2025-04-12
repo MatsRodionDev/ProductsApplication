@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Shared.Consts;
 using UserService.API.Dtos.Requests;
 using UserService.API.Dtos.Responses;
+using UserService.API.Extensions;
 using UserService.BLL.Interfaces.Services;
 
 namespace UserService.API.Controllers
@@ -49,7 +50,7 @@ namespace UserService.API.Controllers
         [HttpPatch("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest dto, CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
+            var userId = User.GetUserId();
 
             await userService.UpdateAsyc(userId, dto.FirstName, dto.LastName, cancellationToken);
 
@@ -60,7 +61,7 @@ namespace UserService.API.Controllers
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfileIdAsync(CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
+            var userId = User.GetUserId();
 
             var user = await userService.GetByIdAsync(userId, cancellationToken);
 

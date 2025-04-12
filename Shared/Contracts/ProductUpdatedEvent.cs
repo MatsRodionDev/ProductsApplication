@@ -2,5 +2,5 @@
 {
     public record ProductUpdatedEvent(
         Guid ProductId, 
-        int Quantity);
+        int Quantity): IIntegrationEvent;
 }

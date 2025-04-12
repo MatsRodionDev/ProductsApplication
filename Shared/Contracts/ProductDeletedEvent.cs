@@ -1,4 +1,4 @@
 ﻿namespace Shared.Contracts
 {
-    public record ProductDeletedEvent(Guid ProductId);
+    public record ProductDeletedEvent(Guid ProductId) : IIntegrationEvent;
 }

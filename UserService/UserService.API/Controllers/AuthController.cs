@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Consts;
 using UserService.API.Dtos.Requests;
+using UserService.API.Extensions;
 using UserService.BLL.Interfaces.Services;
 using UserService.BLL.Models;
 
@@ -68,7 +69,7 @@ namespace UserService.API.Controllers
         [HttpPatch("logout")]
         public async Task<IActionResult> LogOut(CancellationToken cancellationToken)
         {
-            var userId = Guid.Parse(User.FindFirst(CustomClaims.USER_ID_CLAIM_KEY)!.Value);
+            var userId = User.GetUserId();
 
             await authService.LogoutAsync(userId, cancellationToken);
 

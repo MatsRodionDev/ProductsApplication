@@ -1,5 +1,6 @@
 ﻿using Hangfire;
 using UserService.BLL.Interfaces.Jobs;
+using UserService.BLL.Jobs;
 using UserService.DAL.Interfaces;
 
 namespace UserService.API.Extensions
@@ -15,6 +16,17 @@ namespace UserService.API.Extensions
                     nameof(IUserJobsService.ClearNotActivatedAccountsAsync),
                     job => job.ClearNotActivatedAccountsAsync(),
                     configuration[$"Jobs:Recurring:ClearAccounts"]);
+
+            for (int i = 0; i < 5; i++)
+            {
+                application
+                .ApplicationServices
+                .GetService<IRecurringJobManager>()
+                .AddOrUpdate<OutboxMessageJobs>(
+                    nameof(OutboxMessageJobs.ProcessOutboxMessagesJob),
+                    job => job.ProcessOutboxMessagesJob(),
+                    configuration[$"Jobs:Recurring:ProcessOutbox"]);
+            }
         }
 
         public static void UseApplyMigrations(this IApplicationBuilder app)

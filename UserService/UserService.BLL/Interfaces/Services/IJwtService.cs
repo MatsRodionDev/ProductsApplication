@@ -6,6 +6,6 @@ namespace UserService.BLL.Interfaces.Services
     {
         string GenerateAccesToken(User user, string role);
         string GenerateRefreshToken(Guid userId);
-        IDictionary<string, object>? GetClaimsFromToken(string token);
+        IDictionary<string, string>? GetClaimsFromToken(string token);
     }
 }
