@@ -1,0 +1,390 @@
+services:
+  redis:
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    networks:
+      - redis-net
+
+  proj.rabbitmq:
+    restart: always
+    hostname: rabbit
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASSWORD}
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit disk_free_limit 2147483648
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "${RABBIT_PORT}:5672" 
+      - "${RABBIT_INTEFACE_PORT}:15672" 
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - rabbitmq-net
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmqctl status"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  order.mssqldb:
+    ports:
+      - "${ORDER_DB_PORT}:1433"
+    environment:
+      - ACCEPT_EULA=${ORDER_DB_EULA}
+      - SA_PASSWORD=${ORDER_DB_PASSWORD}
+    networks:
+      - order-db
+    volumes:
+      - order_db_data:/var/opt/mssql/data
+      - order_db_log:/var/opt/mssql/log
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "${ORDER_DB_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+    restart: always
+
+  user.mssqldb:
+    ports:
+      - "${USER_DB_PORT}:1433"
+    environment:
+      - ACCEPT_EULA=${USER_DB_EULA}
+      - SA_PASSWORD=${USER_DB_PASSWORD}
+    networks:
+      - user-db
+    volumes:
+      - user_db_data:/var/opt/mssql/data
+      - user_db_log:/var/opt/mssql/log
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "${USER_DB_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+    restart: always
+
+  chat.mssqldb:
+    ports:
+      - "${CHAT_DB_PORT}:1433"
+    environment:
+      - ACCEPT_EULA=${CHAT_DB_EULA}
+      - SA_PASSWORD=${CHAT_DB_PASSWORD}
+    networks:
+      - chat-db
+    volumes:
+      - chat_db_data:/var/opt/mssql/data
+      - chat_db_log:/var/opt/mssql/log
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "${CHAT_DB_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+    restart: always
+
+  product.read.mongodb:
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${PRODUCT_READ_MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${PRODUCT_READ_MONGO_PASSWORD}
+    ports:
+      - "${PRODUCT_READ_MONGO_PORT}:27017"
+    networks:
+      - mongo-net
+    volumes:
+      - product_read_mongo_data:/data/db
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.runCommand({ ping: 1 }).ok' | mongosh --quiet"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: always
+
+  product.update.mongodb:
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${PRODUCT_UPDATE_MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${PRODUCT_UPDATE_MONGO_PASSWORD}
+    ports:
+      - "${PRODUCT_UPDATE_MONGO_PORT}:27017"
+    networks:
+      - mongo-net
+    volumes:
+      - product_update_mongo_data:/data/db
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.runCommand({ ping: 1 }).ok' | mongosh --quiet"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: always
+
+  minio:
+    environment:
+      - MINIO_ROOT_USER=${MINIO_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
+    ports:
+      - "${MINIO_PORT}:9000"
+      - "${MINIO_INTEFACE_PORT}:9001"
+    command: server /data
+    restart: unless-stopped
+    volumes:
+      - minio_data:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "--fail", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  productservice:
+    environment:
+      - Kestrel__Endpoints__gRPC__Url=http://0.0.0.0:${PRODUCT_SERVICE_GRPC_PORT}
+      - Kestrel__Endpoints__Https__Url=http://0.0.0.0:${PRODUCT_SERVICE_HTTPS_PORT}
+      - Kestrel__Endpoints__Http__Url=http://0.0.0.0:${PRODUCT_SERVICE_HTTP_PORT}
+      - MinioOptions__ImageUrl=localhost:${GATEWAY_SERVICE_HTTP_PORT}
+      - MinioOptions__Endpoint=minio:${MINIO_PORT}
+      - MinioOptions__AccessKey=MINIO_ROOT_USER
+      - MinioOptions__SecretKey=MINIO_ROOT_PASSWORD
+      - ConnectionStrings__Redis=redis:${REDIS_PORT}
+      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
+      - CommandMongoDbSettings__ConnectionString=mongodb://${PRODUCT_UPDATE_MONGO_USERNAME}:${PRODUCT_UPDATE_MONGO_PASSWORD}@product.update.mongodb:${PRODUCT_UPDATE_MONGO_PORT}
+      - CommandMongoDbSettings__DatabaseName=Products
+      - QueryMongoDbSettings__ConnectionString=mongodb://${PRODUCT_READ_MONGO_USERNAME}:${PRODUCT_READ_MONGO_PASSWORD}@product.read.mongodb:${PRODUCT_READ_MONGO_PORT}
+      - QueryMongoDbSettings__DatabaseName=Products
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=${PRODUCT_SERVICE_HTTP_PORT}
+      - ASPNETCORE_HTTPS_PORTS=${PRODUCT_SERVICE_HTTPS_PORT}
+      - MessageBrokerSettings__Host=amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@proj.rabbitmq:${RABBIT_PORT}
+      - MessageBrokerSettings__Username=${RABBIT_USER}
+      - MessageBrokerSettings__Password=${RABBIT_PASSWORD}
+    ports:
+      - "${PRODUCT_SERVICE_HTTP_PORT}:${PRODUCT_SERVICE_HTTP_PORT}"
+      - "${PRODUCT_SERVICE_HTTPS_PORT}:${PRODUCT_SERVICE_HTTPS_PORT}"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - order-db
+      - rabbitmq-net
+      - redis-net
+      - app-net
+      - mongo-net
+    depends_on:
+      product.update.mongodb:
+        condition: service_healthy
+      product.read.mongodb:
+        condition: service_healthy
+      proj.rabbitmq:
+        condition: service_healthy
+      order.mssqldb:
+        condition: service_healthy
+
+  orderservice:
+    environment:
+      - Kestrel__Endpoints__Https__Url=http://0.0.0.0:${ORDER_SERVICE_HTTPS_PORT}
+      - Kestrel__Endpoints__Http__Url=http://0.0.0.0:${ORDER_SERVICE_HTTP_PORT}
+      - ConnectionStrings__ApplicationDbContext=Data Source=order.mssqldb;Database=OrdersApp;User ID=sa;Password=${ORDER_DB_PASSWORD};TrustServerCertificate=True
+      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
+      - gRPC__ServerUrl=http://productservice:${PRODUCT_SERVICE_GRPC_PORT}
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=${ORDER_SERVICE_HTTP_PORT}
+      - ASPNETCORE_HTTPS_PORTS=${ORDER_SERVICE_HTTPS_PORT}
+      - MessageBrokerSettings__Host=amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@proj.rabbitmq:${RABBIT_PORT}
+      - MessageBrokerSettings__Username=${RABBIT_USER}
+      - MessageBrokerSettings__Password=${RABBIT_PASSWORD}
+    ports:
+      - "${ORDER_SERVICE_HTTP_PORT}:${ORDER_SERVICE_HTTP_PORT}"
+      - "${ORDER_SERVICE_HTTPS_PORT}:${ORDER_SERVICE_HTTPS_PORT}"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - order-db
+      - rabbitmq-net
+      - app-net
+    depends_on:
+      proj.rabbitmq:
+        condition: service_healthy
+      order.mssqldb:
+        condition: service_healthy
+
+  userservice:
+    environment:
+      - Kestrel__Endpoints__Https__Url=http://0.0.0.0:${USER_SERVICE_HTTPS_PORT}
+      - Kestrel__Endpoints__Http__Url=http://0.0.0.0:${USER_SERVICE_HTTP_PORT}
+      - ConnectionStrings__ApplicationDbContext=Data Source=user.mssqldb;Database=UsersApp;User ID=sa;Password=${USER_DB_PASSWORD};TrustServerCertificate=True
+      - ConnectionStrings__Redis=redis:${REDIS_PORT}
+      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=${USER_SERVICE_HTTP_PORT}
+      - ASPNETCORE_HTTPS_PORTS=${USER_SERVICE_HTTPS_PORT}
+      - MessageBrokerSettings__Host=amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@proj.rabbitmq:${RABBIT_PORT}
+      - MessageBrokerSettings__Username=${RABBIT_USER}
+      - MessageBrokerSettings__Password=${RABBIT_PASSWORD}
+      - EmailOptions__From=${MAILKIT_FROM}
+      - EmailOptions__Host=${MAILKIT_HOST}
+      - EmailOptions__Password=${MAILKIT_PASSWORD}
+      - EmailOptions__Port=${MAILKIT_PORT}
+    ports:
+      - "${USER_SERVICE_HTTP_PORT}:${USER_SERVICE_HTTP_PORT}"
+      - "${USER_SERVICE_HTTPS_PORT}:${USER_SERVICE_HTTPS_PORT}"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - user-db
+      - rabbitmq-net
+      - redis-net
+      - app-net
+    depends_on:
+      proj.rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user.mssqldb:
+        condition: service_healthy
+
+  chatservice:
+    environment:
+      - Kestrel__Endpoints__Https__Url=http://0.0.0.0:${CHAT_SERVICE_HTTPS_PORT}
+      - Kestrel__Endpoints__Http__Url=http://0.0.0.0:${CHAT_SERVICE_HTTP_PORT}
+      - ConnectionStrings__Redis=redis:${REDIS_PORT}
+      - ConnectionStrings__ApplicationDbContext=Data Source=chat.mssqldb;Database=ChatDatabase;User ID=sa;Password=${CHAT_DB_PASSWORD};TrustServerCertificate=True
+      - JwtOptions__SecretKey=${JWT_SECRET_KEY}
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=${CHAT_SERVICE_HTTP_PORT}
+      - ASPNETCORE_HTTPS_PORTS=${CHAT_SERVICE_HTTPS_PORT}
+    ports:
+      - "${CHAT_SERVICE_HTTP_PORT}:${CHAT_SERVICE_HTTP_PORT}"
+      - "${CHAT_SERVICE_HTTPS_PORT}:${CHAT_SERVICE_HTTPS_PORT}"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - chat-db
+      - redis-net
+      - app-net
+    depends_on:
+      redis:
+        condition: service_healthy
+      chat.mssqldb:
+        condition: service_healthy
+
+  apigateway:
+    environment:
+      - Jwt__SecretKey=${JWT_SECRET_KEY}
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=${GATEWAY_SERVICE_HTTP_PORT}
+      - ASPNETCORE_HTTPS_PORTS=${GATEWAY_SERVICE_HTTPS_PORT}
+    ports:
+      - "${GATEWAY_SERVICE_HTTP_PORT}:${GATEWAY_SERVICE_HTTP_PORT}"
+      - "${GATEWAY_SERVICE_HTTPS_PORT}:${GATEWAY_SERVICE_HTTPS_PORT}"
+    depends_on:
+      - chatservice
+      - userservice
+      - orderservice    
+      - productservice  
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - app-net
+
+volumes:
+  rabbitmq_data:  
+  order_db_data:
+  order_db_log:
+  user_db_data:
+  user_db_log:
+  chat_db_data:
+  chat_db_log:
+  product_read_mongo_data:
+  product_update_mongo_data:
+  minio_data:
+
+networks:
+  rabbitmq-net:
+    driver: bridge
+  order-db:
+    driver: bridge
+  user-db:
+    driver: bridge
+  chat-db:
+    driver: bridge
+  redis-net:
+    driver: bridge
+  mongo-net:
+    driver: bridge
+  app-net:
+    driver: bridge
+ 
