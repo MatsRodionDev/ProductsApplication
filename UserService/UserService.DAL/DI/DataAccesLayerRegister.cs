@@ -15,7 +15,7 @@ namespace UserService.DAL.DI
             var con = configuration.GetConnectionString(nameof(ApplicationDbContext));
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                 options.UseSqlServer(configuration.GetConnectionString(nameof(ApplicationDbContext)))
+                 options.UseNpgsql(configuration.GetConnectionString(nameof(ApplicationDbContext)))
                     .AddInterceptors(new CreateAuditableInterceptor()));
 
             services.AddScoped<IRoleRepository, RoleRepository>();

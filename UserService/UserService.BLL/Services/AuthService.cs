@@ -3,8 +3,6 @@ using Hangfire;
 using Shared.Consts;
 using Shared.Contracts;
 using Shared.Enums;
-using System.Threading;
-using UserService.BLL.Common.Dtos;
 using UserService.BLL.Common.Providers;
 using UserService.BLL.Common.Responses;
 using UserService.BLL.Exceptions;
@@ -24,7 +22,6 @@ namespace UserService.BLL.Services
         IJwtService jwtService,
         IPasswordHasher passwordHasher,
         IBackgroundJobClient backgroundJobClient,
-        IEventBus eventBus,
         IMapper mapper) : IAuthService
     {
 
@@ -51,8 +48,9 @@ namespace UserService.BLL.Services
                 CacheKeysProvider.GetActivateKey(userId),
                 cancellationToken);
 
+            userEntity.AddEvent(new UserActivatedEvent(userId));
+
             await unitOfWork.SaveChangesAsync(cancellationToken);
-            await eventBus.PublishAsync(new UserActivatedEvent(userEntity.Id));
         }
 
         public async Task<TokenResponse> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
@@ -168,12 +166,12 @@ namespace UserService.BLL.Services
                 throw new UnauthorizedException();
             }
 
-            if (!claims.TryGetValue(CustomClaims.USER_ID_CLAIM_KEY, out var id) && id is not Guid)
+            if (!claims.TryGetValue(CustomClaims.USER_ID_CLAIM_KEY, out var id) || !Guid.TryParse(id, out var userId))
             {
                 throw new UnauthorizedException();
             }
 
-            return Guid.Parse(id.ToString()!);
+            return userId;
         }
 
         private async Task SendActivateCodeAsync(UserEntity userEntity, CancellationToken cancellationToken = default)

@@ -1,4 +1,5 @@
 ﻿using Hangfire;
+using Hangfire.PostgreSql;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ using UserService.BLL.Interfaces.Services;
 using UserService.BLL.Jobs;
 using UserService.BLL.Profiles;
 using UserService.BLL.Services;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 
 namespace UserService.BLL.DI
@@ -29,10 +31,12 @@ namespace UserService.BLL.DI
             {
                 var connectionString = configuration.GetConnectionString("ApplicationDbContext");
 
-                cfg.UseSimpleAssemblyNameTypeSerializer()
-                    .UseRecommendedSerializerSettings()
-                    .UseSqlServerStorage(connectionString);
+                cfg.UsePostgreSqlStorage(options =>
+                {
+                    options.UseNpgsqlConnection(connectionString);
+                });
             });
+
             services.AddHangfireServer();
 
             services.AddMassTransit(busConfigurator =>
@@ -62,6 +66,7 @@ namespace UserService.BLL.DI
             services.AddScoped<IRoleService, RoleService>();
 
             services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<OutboxMessageJobs>();
 
             services.AddTransient<IEventBus, EventBus>();
             services.AddTransient<IUserJobsService, UserJobsService>();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using UserService.DAL.Entities;
+using UserService.DAL.Outbox;
 
 namespace UserService.DAL
 {
@@ -8,6 +9,7 @@ namespace UserService.DAL
     {
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<RoleEntity> Roles { get; set; }
+        public DbSet<OutboxMessageEntity> Outboxes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,5 +1,5 @@
 ﻿namespace Shared.Contracts
 {
     public record UserActivatedEvent(
-        Guid UserId);
+        Guid UserId) : IIntegrationEvent;
 }
