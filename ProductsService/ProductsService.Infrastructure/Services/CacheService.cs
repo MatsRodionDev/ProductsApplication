@@ -37,7 +37,6 @@ namespace ProductsService.Infrastructure.Services
             await distributedCache.SetStringAsync(key, jsonStringValue, cacheOptions, cancellationToken);
         }
 
-
         public async Task RemoveAsync(string key, CancellationToken cancellationToken)
         {
             await distributedCache.RemoveAsync(key, cancellationToken);

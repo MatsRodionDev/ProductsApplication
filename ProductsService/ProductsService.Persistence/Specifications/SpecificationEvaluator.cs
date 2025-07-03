@@ -1,4 +1,6 @@
-﻿namespace ProductsService.Persistence.Specifications
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace ProductsService.Persistence.Specifications
 {
     public static class SpecificationEvaluator
     {
@@ -8,6 +10,11 @@
             where TEntity : class
         {
             IQueryable<TEntity> queryable = query;
+
+            foreach (var includeExpression in specification.IncludeExpressions)
+            {
+                queryable = queryable.Include(includeExpression);
+            }
 
             foreach (var criteria in specification.Criteria)
             {

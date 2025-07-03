@@ -7,6 +7,6 @@ namespace ProductsService.Domain.Interfaces
     {
         Task<List<Product>> GetByUserIdAndByFiltersAsync(GetUsersProductsFilters filters, CancellationToken cancellationToken = default);
         Task<List<Product>> GetByFiltersAsync(GetProductsFilters filters, CancellationToken cancellationToken = default);
-        Task<Product> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }

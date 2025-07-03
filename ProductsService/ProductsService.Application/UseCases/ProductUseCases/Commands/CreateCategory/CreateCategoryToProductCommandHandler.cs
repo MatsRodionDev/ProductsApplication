@@ -3,17 +3,15 @@ using Shared.Contracts;
 using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
-using ProductsService.Domain.Models;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateCategory
 {
     public class CreateCategoryToProductCommandHandler(
-        IProductCommandRepository repository,
-        IEventBus eventBus) : ICommandHandler<CreateCategoryToProductCommand>
+        IUnitOfWork unitOfWork) : ICommandHandler<CreateCategoryToProductCommand>
     {
         public async Task Handle(CreateCategoryToProductCommand request, CancellationToken cancellationToken)
         {
-            var product = await repository.GetByIdAsync(request.ProductId, cancellationToken);
+            var product = await unitOfWork.Products.GetByIdAsync(request.ProductId, cancellationToken);
 
             if (product is null)
             {
@@ -25,17 +23,17 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateCa
                 throw new UnauthorizedException("User with such id cannot change this product");
             }
 
-            var category = new Category
+            var category = await unitOfWork.Categories.GetByIdAsync(request.CategoryId, cancellationToken);
+
+            if (category is null)
             {
-                Name = request.Category
-            };
+                throw new NotFoundException("Category with such id doesnt exist");
+            }
 
             product.Categories.Add(category);
 
-            await repository.UpdateAsync(product, cancellationToken);
-            await eventBus.PublishAsync(
-                new ProductUpdatedEvent(product.Id, product.Quantity),
-                cancellationToken);
+            unitOfWork.Products.Update(product);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

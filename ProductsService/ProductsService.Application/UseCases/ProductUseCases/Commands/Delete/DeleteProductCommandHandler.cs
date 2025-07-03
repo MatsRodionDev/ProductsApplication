@@ -8,13 +8,11 @@ using ProductsService.Application.Common.Interfaces;
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Delete
 {
     public class DeleteProductCommandHandler(
-        IProductCommandRepository repository,
-        IEventBus eventBus,
-        IFileService fileService) : ICommandHandler<DeleteProductCommand>
+        IUnitOfWork unitOfWork) : ICommandHandler<DeleteProductCommand>
     {
         public async Task Handle(DeleteProductCommand request, CancellationToken cancellationToken)
         {
-            var product = await repository.GetByIdAsync(request.ProductId, cancellationToken);
+            var product = await unitOfWork.Products.GetByIdAsync(request.ProductId, cancellationToken);
 
             if (product is null)
             {
@@ -26,15 +24,9 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Delete
                 throw new UnauthorizedException("User with such id cannot delete this product");
             }
 
-            foreach (var image in product.Images)
-            {
-                await fileService.RemoveFileAsync(image.ImageName, cancellationToken);
-            }
-
-            await repository.RemoveAsync(request.ProductId, cancellationToken);
-            await eventBus.PublishAsync(
-                new ProductDeletedEvent(request.ProductId), 
-                cancellationToken);
+            unitOfWork.Products.Remove(product);
+            await unitOfWork.Outboxes.AddAsync(new ProductCreatedEvent(product.Id), cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

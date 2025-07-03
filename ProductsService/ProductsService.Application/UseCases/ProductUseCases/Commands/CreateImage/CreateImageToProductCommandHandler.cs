@@ -9,13 +9,12 @@ using ProductsService.Domain.Models;
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateImage
 {
     public class CreateImageToProductCommandHandler(
-        IProductCommandRepository repository,
-        IFileService fileService,
-        IEventBus eventBus) : ICommandHandler<CreateImageToProductCommand>
+        IUnitOfWork unitOfWork,
+        IFileService fileService) : ICommandHandler<CreateImageToProductCommand>
     {
         public async Task Handle(CreateImageToProductCommand request, CancellationToken cancellationToken)
         {
-            var product = await repository.GetByIdAsync(request.ProductId, cancellationToken);
+            var product = await unitOfWork.Products.GetByIdAsync(request.ProductId, cancellationToken);
 
             if (product is null)
             {
@@ -33,10 +32,20 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateIm
             };
             product.Images.Add(image);
 
-            await repository.UpdateAsync(product, cancellationToken);
-            await eventBus.PublishAsync(
-                new ProductUpdatedEvent(product.Id, product.Quantity),
-                cancellationToken);
+
+            try
+            {
+                unitOfWork.Products.Update(product);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            catch
+            {
+                await fileService.RemoveFileAsync(image.ImageName, cancellationToken);
+
+                throw;
+            }
+            
+            
         }
     }
 }

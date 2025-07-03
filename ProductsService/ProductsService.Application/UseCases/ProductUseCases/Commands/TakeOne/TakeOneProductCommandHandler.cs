@@ -1,44 +1,58 @@
 ﻿using ProductsService.Application.Common.Abstractions;
 using Shared.Contracts;
 using ProductsService.Application.Common.Dto.Responses;
-using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
+using System.Data;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.TakeOne
 {
     internal sealed class TakeOneProductCommandHandler(
-        IProductCommandRepository commandRepository,
-        IEventBus eventBus) : ICommandHandler<TakeOneProductCommand, TakedProductResponseDto>
+        IUnitOfWork unitOfWork) : ICommandHandler<TakeOneProductCommand, TakedProductResponseDto>
     {
         public async Task<TakedProductResponseDto> Handle(TakeOneProductCommand request, CancellationToken cancellationToken)
         {
-            var product = await commandRepository.GetByIdAsync(request.Id, cancellationToken);
+            await using var transaction = await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
 
-            if (product is null)
+            try
             {
-                throw new NotFoundException($"Product with id {request.Id} doesnt exist");
-            }
+                var product = await unitOfWork.Products.GetByIdAsync(request.Id, cancellationToken);
 
-            if (product.Quantity < request.Quantity)
+                if (product is null)
+                {
+                    throw new NotFoundException($"Product with id {request.Id} doesnt exist");
+                }
+
+                if (product.Quantity < request.Quantity)
+                {
+                    throw new BadRequestException($"Product with id {request.Id} doesnt available in this quantity");
+                }
+
+                product.Quantity -= request.Quantity;
+
+                unitOfWork.Products.Update(product);
+
+                await unitOfWork.Outboxes.AddAsync(
+                    new ProductUpdatedEvent(product.Id, product.Quantity),
+                    cancellationToken);
+
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+
+                return new TakedProductResponseDto(
+                   product.Id,
+                   product.Name,
+                   product.Price,
+                   request.Quantity,
+                   product.UserId);
+            }
+            catch
             {
-                throw new BadRequestException($"Product with id {request.Id} doesnt available in this quantity");
+                await transaction.RollbackAsync(cancellationToken);
+
+                throw;
             }
-
-            product.Quantity -= request.Quantity;
-
-            await commandRepository.UpdateAsync(product);
-
-            await eventBus.PublishAsync(
-                new ProductUpdatedEvent(product.Id, product.Quantity), 
-                cancellationToken);
-
-            return new TakedProductResponseDto(
-                product.Id,
-                product.Name,
-                product.Price,
-                request.Quantity,
-                product.UserId);
         }
     }
 }

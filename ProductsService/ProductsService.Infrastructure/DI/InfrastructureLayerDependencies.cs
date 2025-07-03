@@ -17,9 +17,7 @@ namespace ProductsService.Infrastructure.DI
         {
             services.AddMassTransit(busConfigurator =>
             {
-                busConfigurator.AddConsumer<ProductCreatedEventConsumer>();
                 busConfigurator.AddConsumer<ProductDeletedEventConsumer>();
-                busConfigurator.AddConsumer<ProductUpdatedEventConsumer>();
 
                 busConfigurator.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("product-service", false));
 

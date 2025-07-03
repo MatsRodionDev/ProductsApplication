@@ -2,7 +2,7 @@
 
 namespace ProductsService.Domain.Models
 {
-    public class Product : IBaseModel
+    public class Product : BaseModel
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 

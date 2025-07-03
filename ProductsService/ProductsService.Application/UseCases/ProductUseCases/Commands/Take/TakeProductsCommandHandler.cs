@@ -1,61 +1,87 @@
 ﻿using ProductsService.Application.Common.Abstractions;
 using Shared.Contracts;
 using ProductsService.Application.Common.Dto.Responses;
-using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Domain.Models;
 using System.Text;
-using System.Threading;
+using System.Data;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Take
 {
     internal sealed class TakeProductsCommandHandler(
-        IProductCommandRepository commandRepository,
-        IEventBus eventBus) : ICommandHandler<TakeProductsCommand, List<TakedProductResponseDto>>
+        IUnitOfWork unitOfWork) : ICommandHandler<TakeProductsCommand, List<TakedProductResponseDto>>
     {
         public async Task<List<TakedProductResponseDto>> Handle(TakeProductsCommand request, CancellationToken cancellationToken)
         {
-            var errors = new StringBuilder();
+            await using var transaction = await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
 
-            List<Product> products = [];
+            try
+            {
+                var productsIds = request.Products.Select(p => p.Id).ToList();
+
+                var products = await unitOfWork.Products.GetByIdsForUpdateAsync(productsIds, cancellationToken);
+
+                var takedProducts = GetTakenProducts(request, products, out var errors);
+
+                if (errors.Length > 0)
+                {
+                    throw new BadRequestException(errors.ToString());
+                }
+
+                unitOfWork.Products.UpdateMany(products);
+
+                foreach (var product in products)
+                {
+                    await unitOfWork.Outboxes.AddAsync(
+                        new ProductUpdatedEvent(product.Id, product.Quantity),
+                        cancellationToken);
+                }
+
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+
+                return takedProducts;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+
+                throw;
+            }
+        }
+
+        private List<TakedProductResponseDto> GetTakenProducts(TakeProductsCommand request, List<Product> products, out StringBuilder errors)
+        {
+            errors = new StringBuilder();
+
             List<TakedProductResponseDto> takedProducts = [];
 
-            foreach (var productToTake in request.Products)
+            foreach (var requestProduct in request.Products)
             {
-                var product = await commandRepository.GetByIdAsync(productToTake.Id, cancellationToken);
+                var product = products.FirstOrDefault(p => p.Id == requestProduct.Id);
 
                 if (product is null)
                 {
-                    errors.Append($"Product with id {productToTake.Id} doesnt available");
+                    errors.AppendLine($"Product with id {requestProduct.Id} doesn't exist.");
                     continue;
                 }
 
-                if (product.Quantity < productToTake.Quantity)
+                if (product.Quantity < requestProduct.Quantity)
                 {
-                    errors.Append($"Product with id {productToTake.Id} doesnt available in this quantity");
+                    errors.AppendLine($"Product with id {requestProduct.Id} is not available in quantity {requestProduct.Quantity}.");
                     continue;
                 }
 
-                product.Quantity -= productToTake.Quantity;
-
-                products.Add(product);
-                takedProducts.Add(
-                    CreateTakedProductDto(product, productToTake.Quantity)); 
+                product.Quantity -= requestProduct.Quantity;
+                takedProducts.Add(MapToTakenProductDto(product, requestProduct.Quantity));
             }
-
-            if (errors.Length > 0)
-            {
-                throw new BadRequestException(errors.ToString());
-            }
-
-            await commandRepository.UpdateManyAsync(products, cancellationToken);
-            await PublishEventsAsync(products, cancellationToken);
 
             return takedProducts;
         }
 
-        private TakedProductResponseDto CreateTakedProductDto(Product product, int quantity)
+        private TakedProductResponseDto MapToTakenProductDto(Product product, int quantity)
         {
             return new TakedProductResponseDto(
                 product.Id,
@@ -64,16 +90,5 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Take
                 quantity,
                 product.UserId);
         }
-
-        private async Task PublishEventsAsync(List<Product> products, CancellationToken cancellationToken = default)
-        {
-            var publishTasks = products
-                .Select(p => eventBus.PublishAsync(
-                    new ProductUpdatedEvent(p.Id, p.Quantity),
-                    cancellationToken));
-
-            await Task.WhenAll(publishTasks);
-        }
-
     }
 }

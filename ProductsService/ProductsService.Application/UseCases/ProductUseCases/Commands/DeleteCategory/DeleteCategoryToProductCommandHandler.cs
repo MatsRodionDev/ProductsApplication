@@ -7,12 +7,12 @@ using ProductsService.Domain.Interfaces;
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteCategory
 {
     public class DeleteCategoryToProductCommandHandler(
-        IProductCommandRepository repository,
+        IUnitOfWork unitOfWork,
         IEventBus eventBus) : ICommandHandler<DeleteCategoryToProductCommand>
     {
         public async Task Handle(DeleteCategoryToProductCommand request, CancellationToken cancellationToken)
         {
-            var product = await repository.GetByIdAsync(request.ProductId, cancellationToken);
+            var product = await unitOfWork.Products.GetByIdAsync(request.ProductId, cancellationToken);
 
             if (product is null)
             {
@@ -34,10 +34,8 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteCa
 
             product.Categories.Remove(category);
 
-            await repository.UpdateAsync(product, cancellationToken);
-            await eventBus.PublishAsync(
-                new ProductUpdatedEvent(product.Id, product.Quantity), 
-                cancellationToken);
+            unitOfWork.Products.Update(product);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 }

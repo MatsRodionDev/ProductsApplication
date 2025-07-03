@@ -10,8 +10,14 @@ namespace ProductsService.Persistence.Specifications
         public GetUsersProductsByFiltersSpecification(
             GetUsersProductsFilters filters) 
         {
+            AddInclude(p => p.Images);
+            AddInclude(p => p.Categories);
+
             AddCriteria(p => p.UserId == filters.UserId);
-            AddCriteria(p => p.Name.Contains(filters.ProductName, StringComparison.CurrentCultureIgnoreCase));
+            AddCriteria(p => p.Name
+                .Contains(
+                    filters.ProductName, 
+                    StringComparison.CurrentCultureIgnoreCase));
 
             if (filters.Category is not null)
             {
@@ -21,20 +27,20 @@ namespace ProductsService.Persistence.Specifications
             switch (filters.OrderBy)
             {
                 case OrderBy.Id:
-                    AddOrderByOrByDescending(p => p.Id, filters.Asc);
+                    AddOrderByOrBy(p => p.Id, filters.Asc);
                     break;
 
                 case OrderBy.Name:
-                    AddOrderByOrByDescending(p => p.Name, filters.Asc);
+                    AddOrderByOrBy(p => p.Name, filters.Asc);
                     break;
 
                 case OrderBy.Price:
-                    AddOrderByOrByDescending(p => p.Price, filters.Asc);
+                    AddOrderByOrBy(p => p.Price, filters.Asc);
                     break;
             }
         }
 
-        private void AddOrderByOrByDescending(Expression<Func<Product, object>> predicate, bool asc)
+        private void AddOrderByOrBy(Expression<Func<Product, object>> predicate, bool asc)
         {
             if (asc)
             {

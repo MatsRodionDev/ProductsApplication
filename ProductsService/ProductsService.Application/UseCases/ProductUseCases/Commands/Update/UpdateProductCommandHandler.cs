@@ -1,39 +1,57 @@
 ﻿using ProductsService.Application.Common.Abstractions;
 using Shared.Contracts;
-using ProductsService.Application.Common.Interfaces;
 using ProductsService.Domain.Exceptions;
 using ProductsService.Domain.Interfaces;
+using System.Data;
 
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Update
 {
     public class UpdateProductCommandHandler(
-        IProductCommandRepository repository,
-        IEventBus eventBus): ICommandHandler<UpdateProductCommand>
+        IUnitOfWork unitOfWork): ICommandHandler<UpdateProductCommand>
     {
         public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
-            var product = await repository.GetByIdAsync(request.Id, cancellationToken);
+            await using var transaction = await unitOfWork.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
 
-            if (product is null)
+            try
             {
-                throw new NotFoundException("Product with such id doesnt exist");
-            }
+                var product = await unitOfWork.Products.GetByIdAsync(request.Id, cancellationToken);
 
-            if(request.UserId != product.UserId)
+                if (product is null)
+                {
+                    throw new NotFoundException("Product with such id doesnt exist");
+                }
+
+                if (request.UserId != product.UserId)
+                {
+                    throw new UnauthorizedException("User with such id cannot change this product");
+                }
+
+                if (request.Quantity + product.Quantity < 0)
+                {
+                    throw new BadRequestException("There is no product with this id in this quantity");
+                }
+
+                product.Update(
+                    request.Name,
+                    request.Description,
+                    request.Quantity + product.Quantity,
+                    request.Price);
+
+                unitOfWork.Products.Update(product);
+                await unitOfWork.Outboxes.AddAsync(
+                    new ProductUpdatedEvent(product.Id, product.Quantity),
+                    cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch
             {
-                throw new UnauthorizedException("User with such id cannot change this product");
+                await transaction.RollbackAsync(cancellationToken);
+
+                throw;
             }
-
-            product.Update(
-                request.Name,
-                request.Description,
-                request.Quantity,
-                request.Price);
-
-            await repository.UpdateAsync(product, cancellationToken);
-            await eventBus.PublishAsync(
-                new ProductUpdatedEvent(product.Id, product.Quantity),
-                cancellationToken);
         }
     }
 }

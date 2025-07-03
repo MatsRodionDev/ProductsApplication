@@ -5,7 +5,7 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.CreateCa
     public record CreateCategoryToProductCommand(
         Guid ProductId,
         Guid UserId,
-        string Category) : ICacheInvalidationCommand
+        Guid CategoryId) : ICacheInvalidationCommand
     {
         public string Key => $"product:{ProductId}";
     }

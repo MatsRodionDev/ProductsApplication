@@ -9,6 +9,7 @@ using ProductsService.Domain.Models;
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
 {
     public class CreateProductCommandHandler(
+        IUnitOfWork unitOfWork,
         IFileService fileService,
         IProductCommandRepository productRepository,
         IMapper mapper,
@@ -32,10 +33,26 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.Create
                 product.Images = images.ToList();
             }
 
-            await productRepository.AddAsync(product);
-            await eventBus.PublishAsync(
-                new ProductCreatedEvent(product.Id),
-                cancellationToken);
+            try
+            {
+                await unitOfWork.Products.AddAsync(product, cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+                await eventBus.PublishAsync(
+                    new ProductCreatedEvent(product.Id),
+                    cancellationToken);
+            }
+            catch
+            {
+                var removeImageTasks = product.Images
+                    .Select(async image =>
+                    {
+                        await fileService.RemoveFileAsync(image.ImageName, cancellationToken);
+                    });
+
+                await Task.WhenAll(removeImageTasks);
+
+                throw;
+            }
         }
     }
 }

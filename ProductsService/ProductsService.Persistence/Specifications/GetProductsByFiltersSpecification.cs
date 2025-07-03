@@ -20,20 +20,20 @@ namespace ProductsService.Persistence.Specifications
             switch (filters.OrderBy)
             {
                 case OrderBy.Id:
-                    AddOrderByOrByDescending(p => p.Id, filters.Asc);
+                    AddOrderByOrBy(p => p.Id, filters.Asc);
                     break;
 
                 case OrderBy.Name:
-                    AddOrderByOrByDescending(p => p.Name, filters.Asc);
+                    AddOrderByOrBy(p => p.Name, filters.Asc);
                     break;
 
                 case OrderBy.Price:
-                    AddOrderByOrByDescending(p => p.Price, filters.Asc);
+                    AddOrderByOrBy(p => p.Price, filters.Asc);
                     break;
             }
         }
 
-        private void AddOrderByOrByDescending(Expression<Func<Product, object>> predicate, bool asc)
+        private void AddOrderByOrBy(Expression<Func<Product, object>> predicate, bool asc)
         {
             if (asc)
             {

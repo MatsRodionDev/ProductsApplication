@@ -8,5 +8,8 @@ namespace ProductsService.Infrastructure.MessageBroker
         public async Task PublishAsync<T>(T message, CancellationToken cancellationToken = default) 
             where T : class =>
             await publishEndpoint.Publish(message, cancellationToken);
+
+        public async Task PublishAsync(object message, CancellationToken cancellationToken = default) =>
+            await publishEndpoint.Publish(message, message.GetType(), cancellationToken);
     }
 }

@@ -8,13 +8,12 @@ using ProductsService.Domain.Interfaces;
 namespace ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteImage
 {
     public class DeleteImageToProductCommandHandler(
-        IProductCommandRepository repository,
-        IFileService fileService,
-        IEventBus eventBus) : ICommandHandler<DeleteImageToProductCommand>
+        IUnitOfWork unitOfWork,
+        IFileService fileService) : ICommandHandler<DeleteImageToProductCommand>
     {
         public async Task Handle(DeleteImageToProductCommand request, CancellationToken cancellationToken)
         {
-            var product = await repository.GetByIdAsync(request.ProductId, cancellationToken);
+            var product = await unitOfWork.Products.GetByIdAsync(request.ProductId, cancellationToken);
 
             if(product is null)
             {
@@ -34,14 +33,25 @@ namespace ProductsService.Application.UseCases.ProductUseCases.Commands.DeleteIm
                 throw new NotFoundException("Image with such id doesnt exist");
             }
 
-            product.Images.Remove(image);
+            await using var transaction = await unitOfWork.BeginTransactionAsync(cancellationToken: cancellationToken);
 
-            await repository.UpdateAsync(product, cancellationToken);
-            await fileService.RemoveFileAsync(image.ImageName, cancellationToken);
+            try
+            {
+                product.Images.Remove(image);
 
-            await eventBus.PublishAsync(
-                new ProductUpdatedEvent(product.Id, product.Quantity), 
-                cancellationToken);
+                unitOfWork.Products.Update(product);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+
+                await fileService.RemoveFileAsync(image.ImageName, cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch 
+            {
+                await transaction.RollbackAsync(cancellationToken);
+
+                throw;
+            }
         }
     }
 }
